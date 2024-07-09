@@ -15,19 +15,22 @@ export async function POST(
   }
 
   await prisma.$connect();
-  const user = await prisma.user.findUnique({
-    where: { id: +userId },
-  });
-  if (!user) {
-    await prisma.$disconnect();
-    return new Response("User not found", { status: 404 });
-  }
   const targetUser = await prisma.user.findUnique({
     where: { id: +targetId },
   });
   if (!targetUser) {
     await prisma.$disconnect();
     return new Response("Target user not found", { status: 404 });
+  }
+  const sent = await prisma.connectionRequest.findFirst({
+    where: {
+      from: +userId,
+      to: +targetId,
+    },
+  });
+  if (sent) {
+    await prisma.$disconnect();
+    return new Response("Connection request already sent", { status: 400 });
   }
   const connectionRequest = await prisma.connectionRequest.create({
     data: {
@@ -59,13 +62,6 @@ export async function PUT(
     return new Response("Bad Request", { status: 400 });
   }
   await prisma.$connect();
-  const user = await prisma.user.findUnique({
-    where: { id: +userId },
-  });
-  if (!user) {
-    await prisma.$disconnect();
-    return new Response("User not found", { status: 404 });
-  }
   const targetUser = await prisma.user.findUnique({
     where: { id: +targetId },
   });

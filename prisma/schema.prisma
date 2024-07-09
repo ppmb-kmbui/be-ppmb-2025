@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  fullname  String?
-  imgUrl    String?  @map("img_url")
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  faculty   String?
-  major     String?
-  batch     String?
-  isAdmin   Boolean  @default(false) @map("is_admin")
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
+  fullname         String?
+  imgUrl           String?            @map("img_url")
+  password         String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  faculty          String?
+  batch            String?
+  isAdmin          Boolean            @default(false) @map("is_admin")
+  AttendanceRecord AttendanceRecord[]
 
   @@map("users")
 }
@@ -43,4 +43,26 @@ model ConnectionRequest {
   updated_at DateTime @default(now()) @updatedAt
 
   @@map("connection_requests")
+}
+
+model Attendance {
+  id               Int                @id @default(autoincrement())
+  name             String             @default("Attendance")
+  code             String
+  expires_in       Int
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @default(now()) @updatedAt
+  AttendanceRecord AttendanceRecord[]
+
+  @@map("attendances")
+}
+
+model AttendanceRecord {
+  user         User       @relation(fields: [userId], references: [id])
+  userId       Int        @map("user_id")
+  attendance   Attendance @relation(fields: [attendanceId], references: [id])
+  attendanceId Int        @map("attendance_id")
+
+  @@id([userId, attendanceId])
+  @@map("attendance_records")
 }
