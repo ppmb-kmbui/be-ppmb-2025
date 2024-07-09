@@ -1,0 +1,118 @@
+import { prisma } from "@/lib/prisma";
+import { NextRequest } from "next/server";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const userId = req.headers.get("X-User-Id");
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const targetId = params.id;
+  if (!targetId) {
+    return new Response("Bad Request", { status: 400 });
+  }
+
+  await prisma.$connect();
+  const user = await prisma.user.findUnique({
+    where: { id: +userId },
+  });
+  if (!user) {
+    await prisma.$disconnect();
+    return new Response("User not found", { status: 404 });
+  }
+  const targetUser = await prisma.user.findUnique({
+    where: { id: +targetId },
+  });
+  if (!targetUser) {
+    await prisma.$disconnect();
+    return new Response("Target user not found", { status: 404 });
+  }
+  const connectionRequest = await prisma.connectionRequest.create({
+    data: {
+      from: +userId,
+      to: +targetId,
+      status: "pending",
+    },
+  });
+  await prisma.$disconnect();
+
+  return new Response(
+    JSON.stringify({
+      ...connectionRequest,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const userId = req.headers.get("X-User-Id");
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const targetId = params.id;
+  if (!targetId) {
+    return new Response("Bad Request", { status: 400 });
+  }
+  await prisma.$connect();
+  const user = await prisma.user.findUnique({
+    where: { id: +userId },
+  });
+  if (!user) {
+    await prisma.$disconnect();
+    return new Response("User not found", { status: 404 });
+  }
+  const targetUser = await prisma.user.findUnique({
+    where: { id: +targetId },
+  });
+  if (!targetUser) {
+    await prisma.$disconnect();
+    return new Response("Target user not found", { status: 404 });
+  }
+  const transaction = await prisma.$transaction([
+    prisma.connection.create({
+      data: {
+        from: +userId,
+        to: +targetId,
+        status: "accepted",
+      },
+    }),
+    prisma.connection.create({
+      data: {
+        from: +targetId,
+        to: +userId,
+        status: "accepted",
+      },
+    }),
+    prisma.connectionRequest.updateMany({
+      where: {
+        OR: [
+          {
+            from: +userId,
+            to: +targetId,
+          },
+          {
+            from: +targetId,
+            to: +userId,
+          },
+        ],
+      },
+      data: {
+        status: "accepted",
+      },
+    }),
+  ]);
+  const [connection1, connection2, _] = transaction;
+  await prisma.$disconnect();
+  return new Response(
+    JSON.stringify({
+      connection_1: connection1,
+      connection_2: connection2,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
+}
