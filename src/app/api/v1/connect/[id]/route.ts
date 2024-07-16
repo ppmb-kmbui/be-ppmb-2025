@@ -24,8 +24,8 @@ export async function POST(
   }
   const sent = await prisma.connectionRequest.findFirst({
     where: {
-      from: +userId,
-      to: +targetId,
+      fromId: +userId,
+      toId: +targetId,
     },
   });
   if (sent) {
@@ -34,8 +34,8 @@ export async function POST(
   }
   const connectionRequest = await prisma.connectionRequest.create({
     data: {
-      from: +userId,
-      to: +targetId,
+      fromId: +userId,
+      toId: +targetId,
       status: "pending",
     },
   });
@@ -72,15 +72,15 @@ export async function PUT(
   const transaction = await prisma.$transaction([
     prisma.connection.create({
       data: {
-        from: +userId,
-        to: +targetId,
+        fromId: +userId,
+        toId: +targetId,
         status: "accepted",
       },
     }),
     prisma.connection.create({
       data: {
-        from: +targetId,
-        to: +userId,
+        fromId: +targetId,
+        toId: +userId,
         status: "accepted",
       },
     }),
@@ -88,12 +88,12 @@ export async function PUT(
       where: {
         OR: [
           {
-            from: +userId,
-            to: +targetId,
+            fromId: +userId,
+            toId: +targetId,
           },
           {
-            from: +targetId,
-            to: +userId,
+            fromId: +targetId,
+            toId: +userId,
           },
         ],
       },

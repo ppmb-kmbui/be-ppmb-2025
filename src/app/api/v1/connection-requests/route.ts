@@ -7,20 +7,38 @@ export async function GET(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
   await prisma.$connect();
-  const connection_requests_recieved = await prisma.$queryRaw`
-    SELECT c.id, c.created_at, c.updated_at, c.status, u.email, 
-    u.fullname, u.id, u.batch, u.faculty, u.img_url
-    FROM connection_requests c
-    JOIN users u ON c.from = u.id
-    WHERE c.to = ${+userId}
-    `;
-  const connection_requests_sent = await prisma.$queryRaw`
-    SELECT c.id, c.created_at, c.updated_at, c.status, u.email, 
-    u.fullname, u.id, u.batch, u.faculty, u.img_url
-    FROM connection_requests c
-    JOIN users u ON c.to = u.id
-    WHERE c.from = ${+userId}
-    `;
+  const connection_requests_recieved = await prisma.connectionRequest.findMany({
+    where: {
+      toId: +userId,
+    },
+    include: {
+      from: {
+        select: {
+          id: true,
+          email: true,
+          fullname: true,
+          faculty: true,
+          imgUrl: true,
+        },
+      },
+    },
+  });
+  const connection_requests_sent = await prisma.connectionRequest.findMany({
+    where: {
+      fromId: +userId,
+    },
+    include: {
+      to: {
+        select: {
+          id: true,
+          email: true,
+          fullname: true,
+          faculty: true,
+          imgUrl: true,
+        },
+      },
+    },
+  });
   await prisma.$disconnect();
   return new Response(
     JSON.stringify({
