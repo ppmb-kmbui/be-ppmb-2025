@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
   await prisma.$connect();
-  const connections = await prisma.connection.findMany({
+  const conns = await prisma.networkingTask.findMany({
     where: {
       fromId: +userId,
     },
@@ -22,13 +22,17 @@ export async function GET(req: NextRequest) {
           password: false,
         },
       },
+      questions: {
+        include: {
+          question: true,
+        },
+      },
     },
   });
   await prisma.$disconnect();
-  return new Response(
-    JSON.stringify({
-      connections,
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+  return new Response(JSON.stringify(conns), {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
