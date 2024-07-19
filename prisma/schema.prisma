@@ -9,26 +9,27 @@ datasource db {
 }
 
 model User {
-  id                        Int                 @id @default(autoincrement())
-  email                     String              @unique
-  fullname                  String?
-  imgUrl                    String?             @map("img_url")
-  password                  String
-  createdAt                 DateTime            @default(now()) @map("created_at")
-  updatedAt                 DateTime            @default(now()) @updatedAt @map("updated_at")
-  faculty                   String?
-  isAdmin                   Boolean             @default(false) @map("is_admin")
-  batch                     Int                 @default(2024)
-  AttendanceRecord          AttendanceRecord[]
-  NetworkingTaskSender      NetworkingTask[]    @relation("from")
-  NetworkingTaskReciever    NetworkingTask[]    @relation("to")
-  ConnectionRequestSender   ConnectionRequest[] @relation("from")
-  ConnectionRequestReciever ConnectionRequest[] @relation("to")
-  ConnectionSender          Connection[]        @relation("from")
-  ConnectionReciever        Connection[]        @relation("to")
-  Quotes                    Quotes[]
-  ConnectSubmission         ConnectSubmission[]
-  FossibSubmission          FossibSubmission[]
+  id                            Int                             @id @default(autoincrement())
+  email                         String                          @unique
+  fullname                      String?
+  imgUrl                        String?                         @map("img_url")
+  password                      String
+  createdAt                     DateTime                        @default(now()) @map("created_at")
+  updatedAt                     DateTime                        @default(now()) @updatedAt @map("updated_at")
+  faculty                       String?
+  isAdmin                       Boolean                         @default(false) @map("is_admin")
+  batch                         Int                             @default(2024)
+  AttendanceRecord              AttendanceRecord[]
+  NetworkingTaskSender          NetworkingTask[]                @relation("from")
+  NetworkingTaskReciever        NetworkingTask[]                @relation("to")
+  ConnectionRequestSender       ConnectionRequest[]             @relation("from")
+  ConnectionRequestReciever     ConnectionRequest[]             @relation("to")
+  ConnectionSender              Connection[]                    @relation("from")
+  ConnectionReciever            Connection[]                    @relation("to")
+  Quotes                        Quotes[]
+  ConnectSubmission             ConnectSubmission[]
+  FirstFossibSessionSubmission  FirstFossibSessionSubmission[]
+  SecondFossibSessionSubmission SecondFossibSessionSubmission[]
 
   @@map("users")
 }
@@ -134,10 +135,18 @@ model ConnectSubmission {
   userId   Int
 }
 
-model FossibSubmission {
-  id       Int    @id @default(autoincrement())
-  batch    Int
-  user     User   @relation(fields: [userId], references: [id])
-  file_url String @map("file_url")
-  userId   Int
+model FirstFossibSessionSubmission {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
+}
+
+model SecondFossibSessionSubmission {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
 }

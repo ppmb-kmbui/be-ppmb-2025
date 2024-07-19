@@ -77,12 +77,25 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const fossib1 = await prisma.firstFossibSessionSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const fossib2 = await prisma.secondFossibSessionSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
   await prisma.$disconnect();
 
   return new Response(
     JSON.stringify({
       networkingAngkatan: { progress: progressMap, min: 20 },
       networkingKating: progressKatingMap,
+      firstFossibDone: !!fossib1,
+      secondFossibDone: !!fossib2,
     }),
     {
       headers: {
