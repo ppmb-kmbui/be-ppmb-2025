@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
   const searchParams = req.nextUrl.searchParams;
-  const name = `%${searchParams.get("name")}%`;
+
   if (!searchParams.get("name")) {
     const friends = await prisma.user.findMany({
       where: {
@@ -90,7 +90,18 @@ export async function GET(req: NextRequest) {
     );
   }
   await prisma.$connect();
-
+  const name = `%${searchParams.get("name")}%`;
+  const person = await prisma.$queryRaw`
+  SELECT id FROM users WHERE fullname ILIKE ${name}
+  `;
+  if (!(person as any).length) {
+    return new Response(
+      JSON.stringify({
+        friends: [],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }
   const friends = await prisma.user.findMany({
     where: {
       AND: [
@@ -102,9 +113,7 @@ export async function GET(req: NextRequest) {
           },
         },
         {
-          fullname: {
-            contains: name,
-          },
+          id: (person as any)[0].id,
         },
       ],
     },
