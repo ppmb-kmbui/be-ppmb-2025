@@ -27,6 +27,7 @@ model User {
   ConnectionSender          Connection[]        @relation("from")
   ConnectionReciever        Connection[]        @relation("to")
   Quotes                    Quotes[]
+  ConnectSubmission         ConnectSubmission[]
 
   @@map("users")
 }
@@ -121,4 +122,12 @@ model Quotes {
   userId     Int
 
   @@map("quotes")
+}
+
+model ConnectSubmission {
+  id       Int    @id @default(autoincrement())
+  batch    Int
+  user     User   @relation(fields: [userId], references: [id])
+  file_url String @map("file_url")
+  userId   Int
 }

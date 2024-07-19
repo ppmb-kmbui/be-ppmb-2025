@@ -112,3 +112,44 @@ export async function PUT(
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const userId = req.headers.get("X-User-Id");
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const targetId = params.id;
+  if (!targetId) {
+    return new Response("Bad Request", { status: 400 });
+  }
+  await prisma.$connect();
+  const targetUser = await prisma.user.findUnique({
+    where: { id: +targetId },
+  });
+  if (!targetUser) {
+    await prisma.$disconnect();
+    return new Response("Target user not found", { status: 404 });
+  }
+  const connr = await prisma.connectionRequest.deleteMany({
+    where: {
+      fromId: +targetId,
+      toId: +userId,
+      status: {
+        not: {
+          equals: "accepted",
+        },
+      },
+    },
+  });
+
+  await prisma.$disconnect();
+  return new Response(
+    JSON.stringify({
+      deleted: connr,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
+}
