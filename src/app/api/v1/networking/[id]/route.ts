@@ -183,6 +183,7 @@ export async function POST(
 }
 
 interface SubmitNetworkingTaskDTO {
+  img_url: string;
   answers: {
     questionId: number;
     answer: string;
@@ -202,6 +203,9 @@ export async function PUT(
     return new Response("Bad Request", { status: 400 });
   }
   const body = (await req.json()) as SubmitNetworkingTaskDTO;
+  if (!body.img_url || !body.answers) {
+    return new Response("Bad Request", { status: 400 });
+  }
 
   await prisma.$connect();
 

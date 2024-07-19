@@ -28,6 +28,7 @@ model User {
   ConnectionReciever        Connection[]        @relation("to")
   Quotes                    Quotes[]
   ConnectSubmission         ConnectSubmission[]
+  FossibSubmission          FossibSubmission[]
 
   @@map("users")
 }
@@ -107,6 +108,7 @@ model NetworkingTask {
   fromId    Int            @map("from_id")
   to        User           @relation(fields: [toId], references: [id], name: "to")
   toId      Int            @map("to_id")
+  img_url   String?
   questions QuestionTask[]
   is_done   Boolean        @default(false) @map("is_done")
 
@@ -125,6 +127,14 @@ model Quotes {
 }
 
 model ConnectSubmission {
+  id       Int    @id @default(autoincrement())
+  batch    Int
+  user     User   @relation(fields: [userId], references: [id])
+  file_url String @map("file_url")
+  userId   Int
+}
+
+model FossibSubmission {
   id       Int    @id @default(autoincrement())
   batch    Int
   user     User   @relation(fields: [userId], references: [id])
