@@ -30,6 +30,13 @@ model User {
   ConnectSubmission             ConnectSubmission[]
   FirstFossibSessionSubmission  FirstFossibSessionSubmission[]
   SecondFossibSessionSubmission SecondFossibSessionSubmission[]
+  InsightHuntingSubmission      InsightHuntingSubmission[]
+  ExplorerSubmission            ExplorerSubmission[]
+  MentoringVlogSubmission       MentoringVlogSubmission[]
+  FirstMentoringReflection      FirstMentoringReflection[]
+  SecondMentoringReflection     SecondMentoringReflection[]
+  ThirdMentoringReflection      ThirdMentoringReflection[]
+  FourthMentoringReflection     FourthMentoringReflection[]
 
   @@map("users")
 }
@@ -128,11 +135,12 @@ model Quotes {
 }
 
 model ConnectSubmission {
-  id       Int    @id @default(autoincrement())
-  batch    Int
-  user     User   @relation(fields: [userId], references: [id])
-  file_url String @map("file_url")
-  userId   Int
+  id          Int     @id @default(autoincrement())
+  batch       Int
+  user        User    @relation(fields: [userId], references: [id])
+  file_url    String  @map("file_url")
+  description String?
+  userId      Int
 }
 
 model FirstFossibSessionSubmission {
@@ -149,4 +157,57 @@ model SecondFossibSessionSubmission {
   file_url    String @map("file_url")
   description String
   userId      Int
+}
+
+model InsightHuntingSubmission {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  file_url String @map("file_url")
+  userId   Int
+}
+
+model ExplorerSubmission {
+  id      Int    @id @default(autoincrement())
+  user    User   @relation(fields: [userId], references: [id])
+  img_url String @map("img_url")
+  userId  Int
+}
+
+model FirstMentoringReflection {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
+}
+
+model SecondMentoringReflection {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
+}
+
+model ThirdMentoringReflection {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
+}
+
+model FourthMentoringReflection {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [userId], references: [id])
+  file_url    String @map("file_url")
+  description String
+  userId      Int
+}
+
+model MentoringVlogSubmission {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  file_url String @map("file_url")
+  userId   Int
 }

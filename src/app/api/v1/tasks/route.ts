@@ -87,6 +87,36 @@ export async function GET(req: NextRequest) {
       userId: +userId,
     },
   });
+  const insightHunting = await prisma.insightHuntingSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const firstMentoring = await prisma.firstMentoringReflection.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const secondMentoring = await prisma.secondMentoringReflection.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const thirdMentoring = await prisma.thirdMentoringReflection.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const fourthMentoring = await prisma.fourthMentoringReflection.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  const mentoringVlog = await prisma.mentoringVlogSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
 
   await prisma.$disconnect();
 
@@ -96,6 +126,12 @@ export async function GET(req: NextRequest) {
       networkingKating: progressKatingMap,
       firstFossibDone: !!fossib1,
       secondFossibDone: !!fossib2,
+      insightHuntingDone: !!insightHunting,
+      firstMentoringDone: !!firstMentoring,
+      secondMentoringDone: !!secondMentoring,
+      thirdMentoringDone: !!thirdMentoring,
+      fourthMentoringDone: !!fourthMentoring,
+      mentoringVlogDone: !!mentoringVlog,
     }),
     {
       headers: {
