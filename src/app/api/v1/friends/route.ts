@@ -91,10 +91,10 @@ export async function GET(req: NextRequest) {
   }
   await prisma.$connect();
   const name = `%${searchParams.get("name")}%`;
-  const person = await prisma.$queryRaw`
+  const person: { id: string }[] = await prisma.$queryRaw`
   SELECT id FROM users WHERE fullname ILIKE ${name}
   `;
-  if (!(person as any).length) {
+  if (!person?.length) {
     return new Response(
       JSON.stringify({
         friends: [],
@@ -113,7 +113,9 @@ export async function GET(req: NextRequest) {
           },
         },
         {
-          id: (person as any)[0].id,
+          OR: person.map(({ id }) => ({
+            id: +id,
+          })),
         },
       ],
     },

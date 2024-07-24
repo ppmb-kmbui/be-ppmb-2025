@@ -14,6 +14,35 @@ export async function POST(
   }
   const body = await req.json();
   await prisma.$connect();
+  if (params.id === "vlog") {
+    const exist = await prisma.mentoringVlogSubmission.findFirst({
+      where: { userId: +userId },
+    });
+    if (exist) {
+      const sub = await prisma.mentoringVlogSubmission.updateMany({
+        where: { userId: +userId },
+        data: {
+          ...body,
+        },
+      });
+      await prisma.$disconnect();
+      return new Response(JSON.stringify(sub), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const sub = await prisma.mentoringVlogSubmission.create({
+      data: {
+        ...body,
+        userId: +userId,
+      },
+    });
+    await prisma.$disconnect();
+    return new Response(JSON.stringify(sub), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   switch (+params.id) {
     case 1: {
       const exist = await prisma.firstMentoringReflection.findFirst({

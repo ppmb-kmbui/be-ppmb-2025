@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
       NetworkingTaskSender: {
         where: {
           fromId: +userId,
+          is_done: true,
         },
         include: {
           questions: {

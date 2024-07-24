@@ -118,12 +118,19 @@ export async function GET(req: NextRequest) {
     },
   });
 
+  const exp = await prisma.explorerSubmission.findMany({
+    where: {
+      userId: +userId,
+    },
+  });
+
   await prisma.$disconnect();
 
   return new Response(
     JSON.stringify({
       networkingAngkatan: { progress: progressMap, min: 20 },
       networkingKating: progressKatingMap,
+      kmbuiExplorer: { progress: exp.length, min: 2 },
       firstFossibDone: !!fossib1,
       secondFossibDone: !!fossib2,
       insightHuntingDone: !!insightHunting,

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   }
   await prisma.$connect();
 
-  const exp = prisma.explorerSubmission.findMany({
+  const exp = await prisma.explorerSubmission.findMany({
     where: {
       userId: +userId,
     },

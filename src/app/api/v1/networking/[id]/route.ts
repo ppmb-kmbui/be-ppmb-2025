@@ -184,6 +184,8 @@ export async function POST(
 
 interface SubmitNetworkingTaskDTO {
   img_url: string;
+  score: number;
+  description: string;
   answers: {
     questionId: number;
     answer: string;
@@ -205,6 +207,12 @@ export async function PUT(
   const body = (await req.json()) as SubmitNetworkingTaskDTO;
   if (!body.img_url || !body.answers) {
     return new Response("Bad Request", { status: 400 });
+  }
+  if (body?.score !== null || body?.description !== null) {
+    return new Response(
+      "Tidak semudah itu fergusso! https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      { status: 403 }
+    );
   }
 
   await prisma.$connect();
