@@ -81,6 +81,7 @@ model AttendanceRecord {
   userId       Int        @map("user_id")
   attendance   Attendance @relation(fields: [attendanceId], references: [id])
   attendanceId Int        @map("attendance_id")
+  evaluation   String     @default("-")
 
   @@id([userId, attendanceId])
   @@map("attendance_records")
