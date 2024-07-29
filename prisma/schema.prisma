@@ -33,10 +33,7 @@ model User {
   InsightHuntingSubmission      InsightHuntingSubmission[]
   ExplorerSubmission            ExplorerSubmission[]
   MentoringVlogSubmission       MentoringVlogSubmission[]
-  FirstMentoringReflection      FirstMentoringReflection[]
-  SecondMentoringReflection     SecondMentoringReflection[]
-  ThirdMentoringReflection      ThirdMentoringReflection[]
-  FourthMentoringReflection     FourthMentoringReflection[]
+  MentoringReflection           MentoringReflection[]
 
   @@map("users")
 }
@@ -174,31 +171,7 @@ model ExplorerSubmission {
   userId  Int
 }
 
-model FirstMentoringReflection {
-  id          Int    @id @default(autoincrement())
-  user        User   @relation(fields: [userId], references: [id])
-  file_url    String @map("file_url")
-  description String
-  userId      Int
-}
-
-model SecondMentoringReflection {
-  id          Int    @id @default(autoincrement())
-  user        User   @relation(fields: [userId], references: [id])
-  file_url    String @map("file_url")
-  description String
-  userId      Int
-}
-
-model ThirdMentoringReflection {
-  id          Int    @id @default(autoincrement())
-  user        User   @relation(fields: [userId], references: [id])
-  file_url    String @map("file_url")
-  description String
-  userId      Int
-}
-
-model FourthMentoringReflection {
+model MentoringReflection {
   id          Int    @id @default(autoincrement())
   user        User   @relation(fields: [userId], references: [id])
   file_url    String @map("file_url")

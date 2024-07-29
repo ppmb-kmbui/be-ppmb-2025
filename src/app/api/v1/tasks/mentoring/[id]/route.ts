@@ -43,28 +43,16 @@ export async function POST(
       headers: { "Content-Type": "application/json" },
     });
   }
-  switch (+params.id) {
-    case 1: {
-      const exist = await prisma.firstMentoringReflection.findFirst({
+
+  if (params.id === "reflection") {
+    const exist = await prisma.mentoringReflection.findFirst({
+      where: { userId: +userId },
+    });
+    if (exist) {
+      const sub = await prisma.mentoringReflection.updateMany({
         where: { userId: +userId },
-      });
-      if (exist) {
-        const sub = await prisma.firstMentoringReflection.updateMany({
-          where: { userId: +userId },
-          data: {
-            ...body,
-          },
-        });
-        await prisma.$disconnect();
-        return new Response(JSON.stringify(sub), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      const sub = await prisma.firstMentoringReflection.create({
         data: {
           ...body,
-          userId: +userId,
         },
       });
       await prisma.$disconnect();
@@ -73,95 +61,18 @@ export async function POST(
         headers: { "Content-Type": "application/json" },
       });
     }
-    case 2: {
-      const exist = await prisma.secondMentoringReflection.findFirst({
-        where: { userId: +userId },
-      });
-      if (exist) {
-        const sub = await prisma.secondMentoringReflection.updateMany({
-          where: { userId: +userId },
-          data: {
-            ...body,
-          },
-        });
-        await prisma.$disconnect();
-        return new Response(JSON.stringify(sub), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      const sub = await prisma.secondMentoringReflection.create({
-        data: {
-          ...body,
-          userId: +userId,
-        },
-      });
-      await prisma.$disconnect();
-      return new Response(JSON.stringify(sub), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    case 3: {
-      const exist = await prisma.thirdMentoringReflection.findFirst({
-        where: { userId: +userId },
-      });
-      if (exist) {
-        const sub = await prisma.thirdMentoringReflection.updateMany({
-          where: { userId: +userId },
-          data: {
-            ...body,
-          },
-        });
-        await prisma.$disconnect();
-        return new Response(JSON.stringify(sub), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      const sub = await prisma.thirdMentoringReflection.create({
-        data: {
-          ...body,
-          userId: +userId,
-        },
-      });
-      await prisma.$disconnect();
-      return new Response(JSON.stringify(sub), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    case 4: {
-      const exist = await prisma.fourthMentoringReflection.findFirst({
-        where: { userId: +userId },
-      });
-      if (exist) {
-        const sub = await prisma.fourthMentoringReflection.updateMany({
-          where: { userId: +userId },
-          data: {
-            ...body,
-          },
-        });
-        await prisma.$disconnect();
-        return new Response(JSON.stringify(sub), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      const sub = await prisma.fourthMentoringReflection.create({
-        data: {
-          ...body,
-          userId: +userId,
-        },
-      });
-      await prisma.$disconnect();
-      return new Response(JSON.stringify(sub), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    default: {
-      return new Response("Bad Request", { status: 400 });
-    }
+    const sub = await prisma.mentoringReflection.create({
+      data: {
+        ...body,
+        userId: +userId,
+      },
+    });
+    await prisma.$disconnect();
+    return new Response(JSON.stringify(sub), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   }
+
+  return new Response("Page does not exists.", { status: 404 });
 }

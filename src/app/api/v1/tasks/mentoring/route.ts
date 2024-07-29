@@ -7,16 +7,7 @@ export async function GET(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
   await prisma.$connect();
-  const first = await prisma.firstMentoringReflection.findFirst({
-    where: { userId: +userId },
-  });
-  const second = await prisma.secondMentoringReflection.findFirst({
-    where: { userId: +userId },
-  });
-  const third = await prisma.thirdMentoringReflection.findFirst({
-    where: { userId: +userId },
-  });
-  const fourth = await prisma.fourthMentoringReflection.findFirst({
+  const reflection = await prisma.mentoringReflection.findFirst({
     where: { userId: +userId },
   });
   const vlog = await prisma.mentoringVlogSubmission.findFirst({
@@ -24,7 +15,7 @@ export async function GET(req: NextRequest) {
   });
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify({ first, second, third, fourth, vlog }), {
+  return new Response(JSON.stringify({ reflection, vlog }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
