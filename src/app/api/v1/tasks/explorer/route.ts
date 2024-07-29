@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   }
   await prisma.$connect();
 
-  const exp = await prisma.explorerSubmission.findMany({
+  const exp = await prisma.explorerSubmission.findFirst({
     where: {
       userId: +userId,
     },
@@ -24,11 +24,32 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
+
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
   const body = await req.json();
   await prisma.$connect();
+  const exists = await prisma.explorerSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  if (exists) {
+    const exp = await prisma.explorerSubmission.update({
+      where: { id: exists.id },
+      data: {
+        ...body,
+      },
+    });
+    await prisma.$disconnect();
+    return new Response(JSON.stringify(exp), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const exp = await prisma.explorerSubmission.create({
     data: {
       ...body,

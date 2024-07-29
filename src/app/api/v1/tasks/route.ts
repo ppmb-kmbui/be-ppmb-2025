@@ -92,22 +92,7 @@ export async function GET(req: NextRequest) {
       userId: +userId,
     },
   });
-  const firstMentoring = await prisma.firstMentoringReflection.findFirst({
-    where: {
-      userId: +userId,
-    },
-  });
-  const secondMentoring = await prisma.secondMentoringReflection.findFirst({
-    where: {
-      userId: +userId,
-    },
-  });
-  const thirdMentoring = await prisma.thirdMentoringReflection.findFirst({
-    where: {
-      userId: +userId,
-    },
-  });
-  const fourthMentoring = await prisma.fourthMentoringReflection.findFirst({
+  const mentoringReflection = await prisma.mentoringReflection.findFirst({
     where: {
       userId: +userId,
     },
@@ -118,7 +103,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const exp = await prisma.explorerSubmission.findMany({
+  const exp = await prisma.explorerSubmission.findFirst({
     where: {
       userId: +userId,
     },
@@ -130,14 +115,11 @@ export async function GET(req: NextRequest) {
     JSON.stringify({
       networkingAngkatan: { progress: progressMap, min: 20 },
       networkingKating: progressKatingMap,
-      kmbuiExplorer: { progress: exp.length, min: 2 },
+      kmbuiExplorerDone: !!exp,
       firstFossibDone: !!fossib1,
       secondFossibDone: !!fossib2,
       insightHuntingDone: !!insightHunting,
-      firstMentoringDone: !!firstMentoring,
-      secondMentoringDone: !!secondMentoring,
-      thirdMentoringDone: !!thirdMentoring,
-      fourthMentoringDone: !!fourthMentoring,
+      mentoringReflectionDone: !!mentoringReflection,
       mentoringVlogDone: !!mentoringVlog,
     }),
     {
