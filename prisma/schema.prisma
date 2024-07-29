@@ -112,15 +112,14 @@ model QuestionTask {
 }
 
 model NetworkingTask {
-  from        User           @relation(fields: [fromId], references: [id], name: "from")
-  fromId      Int            @map("from_id")
-  to          User           @relation(fields: [toId], references: [id], name: "to")
-  toId        Int            @map("to_id")
-  img_url     String?
-  questions   QuestionTask[]
-  is_done     Boolean        @default(false) @map("is_done")
-  score       Int            @default(0)
-  description String?
+  from      User           @relation(fields: [fromId], references: [id], name: "from")
+  fromId    Int            @map("from_id")
+  to        User           @relation(fields: [toId], references: [id], name: "to")
+  toId      Int            @map("to_id")
+  img_url   String?
+  questions QuestionTask[]
+  is_done   Boolean        @default(false) @map("is_done")
+  score     Int            @default(0)
 
   @@id([fromId, toId])
 }
