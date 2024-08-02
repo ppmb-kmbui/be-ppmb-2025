@@ -70,6 +70,7 @@ model Attendance {
   code             String
   expires_in       Int
   created_at       DateTime           @default(now())
+  started_at       DateTime           @default(now())
   updated_at       DateTime           @default(now()) @updatedAt
   AttendanceRecord AttendanceRecord[]
 
@@ -81,7 +82,11 @@ model AttendanceRecord {
   userId       Int        @map("user_id")
   attendance   Attendance @relation(fields: [attendanceId], references: [id])
   attendanceId Int        @map("attendance_id")
-  evaluation   String     @default("-")
+  q1           Int        @default(0)
+  q2           Int        @default(0)
+  q3           Int        @default(0)
+  q4           Int        @default(0)
+  q5           Int        @default(0)
 
   @@id([userId, attendanceId])
   @@map("attendance_records")
