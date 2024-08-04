@@ -56,7 +56,6 @@ export async function POST(
     data: {
       attendanceId: +absensiId,
       userId: +userId,
-      evaluation: body.evaluation,
     },
   });
   await prisma.$disconnect();
