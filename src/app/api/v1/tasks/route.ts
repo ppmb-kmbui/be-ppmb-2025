@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
+  console.log(userId);
   await prisma.$connect();
   const networkingAngkatan = await prisma.networkingTask.findMany({
     where: {
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
       },
     },
   });
+
   const progressMap = {
     SAINTEK: { progress: 0, min: 3 },
     SOSHUM: { progress: 0, min: 3 },
@@ -47,10 +49,15 @@ export async function GET(req: NextRequest) {
       };
     }
   }
+
   const networkingKating = await prisma.connectSubmission.groupBy({
     by: ["batch"],
     _count: true,
+    where: {
+      userId: +userId,
+    },
   });
+
   const progressKatingMap = {
     "2023": { progres: 0, min: 6 },
     "2022": { progres: 0, min: 3 },
@@ -110,6 +117,17 @@ export async function GET(req: NextRequest) {
   });
 
   await prisma.$disconnect();
+
+  const res = JSON.stringify({
+    networkingAngkatan: { progress: progressMap, min: 20 },
+    networkingKating: progressKatingMap,
+    kmbuiExplorerDone: !!exp,
+    firstFossibDone: !!fossib1,
+    secondFossibDone: !!fossib2,
+    insightHuntingDone: !!insightHunting,
+    mentoringReflectionDone: !!mentoringReflection,
+    mentoringVlogDone: !!mentoringVlog,
+  });
 
   return new Response(
     JSON.stringify({
