@@ -263,6 +263,7 @@ export async function PUT(
       },
     },
     data: {
+      img_url: body.img_url,
       is_done: true,
     },
     include: {
