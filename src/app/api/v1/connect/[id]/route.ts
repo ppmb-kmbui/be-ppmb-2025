@@ -32,6 +32,16 @@ export async function POST(
     await prisma.$disconnect();
     return new Response("Connection request already sent", { status: 400 });
   }
+  const recieved = await prisma.connectionRequest.findFirst({
+    where: {
+      fromId: +targetId,
+      toId: +userId,
+    },
+  });
+  if (recieved) {
+    await prisma.$disconnect();
+    return new Response("Connection request already recieved", { status: 400 });
+  }
   const connectionRequest = await prisma.connectionRequest.create({
     data: {
       fromId: +userId,
