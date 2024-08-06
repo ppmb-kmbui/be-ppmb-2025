@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     SAINTEK: { progress: 0, min: 3 },
     SOSHUM: { progress: 0, min: 3 },
     RIK_VOK: { progress: 0, min: 3 },
+    OTHER: { progress: 0, min: 3 },
   };
   for (const angkatan of networkingAngkatan) {
     const faculty = angkatan.to.faculty;
