@@ -6,9 +6,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const isAdmin = !!req.headers.get("X-User-Admin");
-  //   if (!isAdmin) {
-  //     return new Response("Forbidden", { status: 403 });
-  //   }
+  if (!isAdmin) {
+    return new Response("Forbidden", { status: 403 });
+  }
   if (!params.id) {
     return new Response("Bad Request", { status: 400 });
   }
@@ -18,6 +18,9 @@ export async function GET(
   const networkingTask = await prisma.networkingTask.findMany({
     where: {
       fromId: userId,
+    },
+    include: {
+      questions: true,
     },
   });
 
