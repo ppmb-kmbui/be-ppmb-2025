@@ -68,6 +68,15 @@ export async function GET(
     },
   });
 
+  const networkingKating = await prisma.connectSubmission.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      batch: "desc",
+    },
+  });
+
   await prisma.$disconnect();
 
   return new Response(
@@ -79,6 +88,7 @@ export async function GET(
       explorerTask,
       mentoringReflectionTask,
       mentoringVlogTask,
+      networkingKating,
     }),
     {
       headers: {
