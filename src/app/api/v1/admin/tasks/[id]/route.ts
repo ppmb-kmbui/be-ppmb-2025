@@ -20,7 +20,13 @@ export async function GET(
       fromId: userId,
     },
     include: {
-      questions: true,
+      from: true,
+      to: true,
+      questions: {
+        include: {
+          question: true,
+        },
+      },
     },
   });
 
