@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const isAdmin = !!req.headers.get("X-User-Admin");
   if (!isAdmin) {
     return new Response("Forbidden", { status: 403 });
@@ -10,20 +13,16 @@ export async function POST(req: NextRequest) {
   const data = await req.json();
   await prisma.$connect();
 
-  const check = await prisma.networkingTaskScore.findFirst({
+  const check = await prisma.networkingScore.findFirst({
     where: {
-      fromId: data.from_id,
-      toId: data.to_id,
+      userId: +params.id,
     },
   });
 
   if (check) {
-    const score = await prisma.networkingTaskScore.update({
+    const score = await prisma.networkingScore.update({
       where: {
-        fromId_toId: {
-          fromId: data.from_id,
-          toId: data.to_id,
-        },
+        id: check.id,
       },
       data: {
         score: data.score,
@@ -36,11 +35,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const score = await prisma.networkingTaskScore.create({
+  const score = await prisma.networkingScore.create({
     data: {
       score: data.score,
-      fromId: data.from_id,
-      toId: data.to_id,
+      userId: +params.id,
     },
   });
 

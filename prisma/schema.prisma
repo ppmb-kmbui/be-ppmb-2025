@@ -34,8 +34,18 @@ model User {
   ExplorerSubmission            ExplorerSubmission[]
   MentoringVlogSubmission       MentoringVlogSubmission[]
   MentoringReflection           MentoringReflection[]
+  NetworkingScore               NetworkingScore[]
 
   @@map("users")
+}
+
+model NetworkingScore {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+  score  Int
+
+  @@map("networking_scores")
 }
 
 model Connection {
