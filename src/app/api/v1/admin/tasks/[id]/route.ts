@@ -25,6 +25,11 @@ export async function GET(
       questions: {
         include: {
           question: true,
+          task: {
+            select: {
+              score: true,
+            },
+          },
         },
       },
     },
@@ -34,12 +39,26 @@ export async function GET(
     where: {
       userId: userId,
     },
+    include: {
+      FirstFossibSessionScore: {
+        select: {
+          score: true,
+        },
+      },
+    },
   });
 
   const secondFossibTask = await prisma.secondFossibSessionSubmission.findFirst(
     {
       where: {
         userId: userId,
+      },
+      include: {
+        SecondFossibSessionScore: {
+          select: {
+            score: true,
+          },
+        },
       },
     }
   );
@@ -48,11 +67,25 @@ export async function GET(
     where: {
       userId: userId,
     },
+    include: {
+      InsightHuntingSubmissionScore: {
+        select: {
+          score: true,
+        },
+      },
+    },
   });
 
   const explorerTask = await prisma.explorerSubmission.findMany({
     where: {
       userId: userId,
+    },
+    include: {
+      ExplorerSubmissionScore: {
+        select: {
+          score: true,
+        },
+      },
     },
   });
 
@@ -60,11 +93,25 @@ export async function GET(
     where: {
       userId: userId,
     },
+    include: {
+      MentoringReflectionScore: {
+        select: {
+          score: true,
+        },
+      },
+    },
   });
 
   const mentoringVlogTask = await prisma.mentoringVlogSubmission.findFirst({
     where: {
       userId: userId,
+    },
+    include: {
+      MentoringVlogSubmissionScore: {
+        select: {
+          score: true,
+        },
+      },
     },
   });
 
