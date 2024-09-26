@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
+export const maxDuration = 60;
 
 export async function POST(
   req: NextRequest,
