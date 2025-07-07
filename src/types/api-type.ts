@@ -1,3 +1,5 @@
+import type { ZodIssue } from "zod";
+
 export type ValidationError = {
   field: string;
   message: string;
@@ -6,7 +8,7 @@ export type ValidationError = {
 export interface ServerResponseType<T> {
   success: boolean;
   message?: string;
-  error?: string | ValidationError[];
+  error?: string | ZodIssue[] | ValidationError[];
   data?: T;
   status?: number;
 }
