@@ -3,6 +3,7 @@ import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Prisma.UserCreateInput;
   await prisma.$connect();
