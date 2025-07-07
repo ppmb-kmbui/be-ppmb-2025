@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["omitApi"]
+  previewFeatures = ["omitApi"] 
 }
 
 datasource db {
@@ -18,7 +18,7 @@ model User {
   updatedAt                     DateTime                        @default(now()) @updatedAt @map("updated_at")
   faculty                       String?
   isAdmin                       Boolean                         @default(false) @map("is_admin")
-  batch                         Int                             @default(2024)
+  batch                         Int                             @default(2025)
   AttendanceRecord              AttendanceRecord[]
   NetworkingTaskSender          NetworkingTask[]                @relation("from")
   NetworkingTaskReciever        NetworkingTask[]                @relation("to")

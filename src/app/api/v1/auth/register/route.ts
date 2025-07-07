@@ -7,7 +7,16 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as Prisma.UserCreateInput;
   await prisma.$connect();
   body["password"] = await hash(body["password"], 10);
-  const user = await prisma.user.create({ data: body });
+
+  let user;
+  try {
+    user = await prisma.user.create({ data: body });
+  } catch (error) {
+    await prisma.$disconnect();
+    return new Response(
+      
+    );  
+  }
   await prisma.$disconnect();
   return new Response(
     JSON.stringify({

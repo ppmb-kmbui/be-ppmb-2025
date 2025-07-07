@@ -2,10 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 export const maxDuration = 60;
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const isAdmin = !!req.headers.get("X-User-Admin");
   if (!isAdmin) {
     return new Response("Forbidden", { status: 403 });

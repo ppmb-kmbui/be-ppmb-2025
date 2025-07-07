@@ -17,7 +17,6 @@ export async function middleware(req: NextRequest) {
     }
     return NextResponse.next({
       request: {
-        headers,
       },
     });
   } catch (e) {

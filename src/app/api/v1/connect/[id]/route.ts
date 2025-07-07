@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
@@ -59,10 +57,8 @@ export async function POST(
   );
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
@@ -123,10 +119,8 @@ export async function PUT(
   );
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });

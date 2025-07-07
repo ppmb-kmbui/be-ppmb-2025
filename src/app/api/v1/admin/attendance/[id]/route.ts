@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const isAdmin = !!req.headers.get("X-User-Admin");
   if (!isAdmin) {
     return new Response("Forbidden", { status: 403 });
@@ -27,10 +25,8 @@ export async function PUT(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const isAdmin = !!req.headers.get("X-User-Admin");
   if (!isAdmin) {
     return new Response("Forbidden", { status: 403 });
