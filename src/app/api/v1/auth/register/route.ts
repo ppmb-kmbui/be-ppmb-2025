@@ -3,9 +3,7 @@ import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z, ZodError} from "zod";
-import { minLength, success } from "zod/v4";
 import serverResponse from "@/utils/serverResponse";
-import { Fascinate } from "next/font/google";
 import { ValidationError } from "@/types/api-type";
 
 const UserSchema = z.object({
@@ -27,9 +25,17 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.create({data: validateData});
     
-    const responseData = { ...validateData } as any;
-    delete responseData.password;
+    const responseData = { ...validateData } as {
+      fullname: string,
+      password?: string,
+      email: string,
+      imgUrl: string,
+      faculty: string,
+      batch: number
+    };
 
+    delete responseData.password;
+    
     await prisma.$disconnect();
 
     return serverResponse({success: true, message: "Succesfully created an Account", data: responseData})
