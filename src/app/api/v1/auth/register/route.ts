@@ -25,10 +25,14 @@ export async function POST(req: NextRequest) {
     const validateData = UserSchema.parse(body);
     validateData["password"] = await hash(body["password"], 10);
 
-    const user = await prisma.user.create({data: validateData});
+    await prisma.user.create({data: validateData});
+    
+    const responseData = { ...validateData } as any;
+    delete responseData.password;
+
     await prisma.$disconnect();
 
-    return serverResponse({success: true, message: "Succesfully created an Account", data: validateData})
+    return serverResponse({success: true, message: "Succesfully created an Account", data: responseData})
 
   } catch (error) {
     await prisma.$disconnect();
