@@ -16,3 +16,5 @@ export default function serverResponse <T> (
 
         return NextResponse.json(response, {status: response.status});
 }
+
+export const InvalidUserResponse = serverResponse({success: false, message: "Invalid", error: "User tidak ditemukan", status: 404});

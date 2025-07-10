@@ -1,22 +1,26 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidUserResponse } from "@/utils/serverResponse";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidUserResponse;
   }
   await prisma.$connect();
-  const user = await prisma.user.findUnique({
-    where: {
-      id: +userId,
-    },
-  });
-  await prisma.$disconnect();
-  const { password, ...profile } = user!;
-  return new Response(JSON.stringify(profile), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: +userId,
+      },
+    });
+    await prisma.$disconnect();
+    const { password, ...profile } = user!;
+    return serverResponse({success: true, message: "Profile berhasil didapatkan", data: profile});
+
+  } catch (error) {
+    await prisma.$disconnect();
+    return InvalidUserResponse;
+  } 
 }
