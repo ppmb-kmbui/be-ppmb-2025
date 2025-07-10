@@ -15,6 +15,49 @@ const UserSchema = z.object({
   batch: z.number(),
 });
 
+/**
+ * @swagger
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullname:
+ *                 type: string
+ *                 example: Danniel
+ *               email:
+ *                 type: string
+ *                 example: Danniel@email.com
+ *               password:
+ *                 type: string
+ *                 example: DannielSigma
+ *               imgUrl:
+ *                 type: string
+ *                 example: https://example.com/avatar.jpg
+ *               faculty:
+ *                 type: string
+ *                 example: Ilmu Komputer
+ *               batch:
+ *                 type: integer
+ *                 example: 2023
+ *     responses:
+ *       200:
+ *         description: Register success
+ *       400:
+ *         description: Validation failed
+ *       409:
+ *         description: Email already used
+ *       500:
+ *         description: Internal server error
+ */
+
 export async function POST(req: NextRequest) {
   const body = (await req.json());
 

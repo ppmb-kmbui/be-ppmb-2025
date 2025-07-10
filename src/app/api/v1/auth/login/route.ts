@@ -4,6 +4,42 @@ import { NextRequest } from "next/server";
 import serverResponse from "@/utils/serverResponse";
 import * as jwt from "jose";
 
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *  post:
+ *    summary: Login user
+ *    tags:
+ *      - Auth
+ *    requestBody:
+ *      required: true
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          email:
+ *            type: string
+ *            example: danniel@email.com
+ *         password:
+ *            type: string
+ *            example: dannielsigma
+ *    responses:
+ *      200:
+ *       description: Login success, returns JWT token
+ *       content:
+ *        application/json:
+ *         schema:
+ *           type: object
+ *           properties:
+ *            token:
+ *             type: string
+ *      404:
+ *        description: User not found
+ *      400:
+ *        description: Invalid email or password
+ */
+
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as { email: string; password: string };
   await prisma.$connect();
