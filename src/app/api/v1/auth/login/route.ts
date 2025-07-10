@@ -14,30 +14,77 @@ import * as jwt from "jose";
  *    requestBody:
  *      required: true
  *      content:
- *       application/json:
- *        schema:
- *         type: object
- *         properties:
- *          email:
- *            type: string
- *            example: danniel@email.com
- *         password:
- *            type: string
- *            example: dannielsigma
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *                example: danniel@email.com
+ *              password:
+ *                type: string
+ *                example: dannielsigma
  *    responses:
  *      200:
- *       description: Login success, returns JWT token
- *       content:
- *        application/json:
- *         schema:
- *           type: object
- *           properties:
- *            token:
- *             type: string
+ *        description: Login berhasil, returns JWT token
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  example: true
+ *                message:
+ *                  type: string
+ *                  example: Login berhasil
+ *                data:
+ *                  type: object
+ *                  properties:
+ *                    token:
+ *                      type: string
+ *                      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                status:
+ *                  type: integer
+ *                  example: 200
  *      404:
- *        description: User not found
+ *        description: User tidak ditemukan
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  example: false
+ *                message:
+ *                  type: string
+ *                  example: Login gagal
+ *                error:
+ *                  type: string
+ *                  example: User tidak ditemukan
+ *                status:
+ *                  type: integer
+ *                  example: 404
  *      400:
- *        description: Invalid email or password
+ *        description: Email atau Password tidak tepat
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  example: false
+ *                message:
+ *                  type: string
+ *                  example: Login gagal
+ *                error:
+ *                  type: string
+ *                  example: Email atau Password tidak tepat
+ *                status:
+ *                  type: integer
+ *                  example: 400
  */
 
 export async function POST(req: NextRequest) {

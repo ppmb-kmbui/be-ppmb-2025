@@ -49,13 +49,104 @@ const UserSchema = z.object({
  *                 example: 2023
  *     responses:
  *       200:
- *         description: Register success
+ *         description: Berhasil membuat akun
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Berhasil membuat akun
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: clwq1k2z90000v3l5b8k3z9k1
+ *                     fullname:
+ *                       type: string
+ *                       example: Danniel
+ *                     email:
+ *                       type: string
+ *                       example: Danniel@email.com
+ *                     imgUrl:
+ *                       type: string
+ *                       example: https://example.com/avatar.jpg
+ *                     faculty:
+ *                       type: string
+ *                       example: Ilmu Komputer
+ *                     batch:
+ *                       type: integer
+ *                       example: 2023
  *       400:
- *         description: Validation failed
+ *         description: Validasi gagal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Validasi gagal
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: email
+ *                       message:
+ *                         type: string
+ *                         example: Tolong masukan email yang sesuai
+ *                 status:
+ *                   type: integer
+ *                   example: 400
  *       409:
- *         description: Email already used
+ *         description: Email sudah digunakan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Email sudah digunakan
+ *                 error:
+ *                   type: string
+ *                   example: DUPLICATE_EMAIL
+ *                 status:
+ *                   type: integer
+ *                   example: 409
  *       500:
- *         description: Internal server error
+ *         description: Terjadi kesalahan internal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Terjadi kesalahan internal
+ *                 error:
+ *                   type: string
+ *                   example: Unknown error
+ *                 status:
+ *                   type: integer
+ *                   example: 500
  */
 
 export async function POST(req: NextRequest) {
@@ -66,22 +157,13 @@ export async function POST(req: NextRequest) {
     const validateData = UserSchema.parse(body);
     validateData["password"] = await hash(body["password"], 10);
 
-    await prisma.user.create({data: validateData});
+    const user = await prisma.user.create({data: validateData});
     
-    const responseData = { ...validateData } as {
-      fullname: string,
-      password?: string,
-      email: string,
-      imgUrl: string,
-      faculty: string,
-      batch: number
-    };
+    const {password, ...responseData} = user;
 
-    delete responseData.password;
-    
     await prisma.$disconnect();
 
-    return serverResponse({success: true, message: "Succesfully created an Account", data: responseData})
+    return serverResponse({success: true, message: "Berhasil membuat akun", data: responseData})
 
   } catch (error) {
     await prisma.$disconnect();
