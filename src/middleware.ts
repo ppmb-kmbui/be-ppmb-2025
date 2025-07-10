@@ -3,7 +3,7 @@ import * as jwt from "jose";
 import serverResponse from "./utils/serverResponse";
 
 export async function middleware(req: NextRequest) {
-  const token = req.headers.get("Authorization")?.split(" ")[1];
+  const token = req.headers.get("Authorization")?.split(" ")[1];  
   try {
     const { payload } = await jwt.jwtVerify(
       token!,
@@ -24,5 +24,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api/v1/auth/).*)'],
+  // matcher: ['/((?!api/v1/auth/|api-doc).*)'],
+  matcher: ['/api/v1((?!/auth).*)'],
 };
