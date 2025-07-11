@@ -22,6 +22,8 @@ model User {
   AttendanceRecord              AttendanceRecord[]
   NetworkingTaskSender          NetworkingTask[]                @relation("from")
   NetworkingTaskReciever        NetworkingTask[]                @relation("to")
+  NetworkingKatingTaskSender    NetworkingKatingTask[]          @relation("from")
+  NetworkingKatingTaskReceiver  NetworkingKatingTask[]          @relation("to")
   ConnectionRequestSender       ConnectionRequest[]             @relation("from")
   ConnectionRequestReciever     ConnectionRequest[]             @relation("to")
   ConnectionSender              Connection[]                    @relation("from")
@@ -131,6 +133,41 @@ model NetworkingTask {
   toId      Int            @map("to_id")
   img_url   String?
   questions QuestionTask[]
+  is_done   Boolean        @default(false) @map("is_done")
+  score     Int            @default(0)
+
+  @@id([fromId, toId])
+}
+
+model QuestionKating{
+  id           Int            @id @default(autoincrement())
+  question     String
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @default(now()) @updatedAt
+  is_mandatory Boolean        @default(false) @map("is_mandatory")
+  tasks        QuestionKatingTask[]
+
+  @@map("questions_kating")
+}
+
+model QuestionKatingTask {
+  question   QuestionKating       @relation(fields: [questionId], references: [id])
+  questionId Int            @map("question_id")
+  task       NetworkingKatingTask @relation(fields: [fromId, toId], references: [fromId, toId])
+  fromId     Int            @map("from_id")
+  toId       Int            @map("to_id")
+  answer     String?
+
+  @@id([questionId, fromId, toId])
+}
+
+model NetworkingKatingTask {
+  from      User           @relation(fields: [fromId], references: [id], name: "from")
+  fromId    Int            @map("from_id")
+  to        User           @relation(fields: [toId], references: [id], name: "to")
+  toId      Int            @map("to_id")
+  img_url   String?
+  questions QuestionKatingTask[]
   is_done   Boolean        @default(false) @map("is_done")
   score     Int            @default(0)
 
