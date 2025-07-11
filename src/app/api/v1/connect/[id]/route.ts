@@ -1,35 +1,47 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse, InvalidTargetUserResponse, InvalidUserResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
 
-  await prisma.$connect();
+  await prisma.$connect;
+  const user = await prisma.user.findUnique({
+    where: { id: +userId }
+  });
+
+  if (!user) {
+    await prisma.$disconnect();
+    return InvalidUserResponse;
+  }
+
   const targetUser = await prisma.user.findUnique({
     where: { id: +targetId },
   });
+
   if (!targetUser) {
     await prisma.$disconnect();
-    return new Response("Target user not found", { status: 404 });
+    return InvalidTargetUserResponse;
   }
+
   const sent = await prisma.connectionRequest.findFirst({
     where: {
       fromId: +userId,
       toId: +targetId,
     },
   });
+
   if (sent) {
     await prisma.$disconnect();
-    return new Response("Connection request already sent", { status: 400 });
+    return serverResponse({success: false, message: "Invalid Connection Attempt", error: "Connextion request sudah dibuat", status: 409});
   }
+
   const recieved = await prisma.connectionRequest.findFirst({
     where: {
       fromId: +targetId,
@@ -38,8 +50,9 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   });
   if (recieved) {
     await prisma.$disconnect();
-    return new Response("Connection request already recieved", { status: 400 });
+    return serverResponse({success: false, message: "Invalid Connection Attempt", error: "User sudah mengirim connextion request kepada Anda", status: 409});
   }
+  
   const connectionRequest = await prisma.connectionRequest.create({
     data: {
       fromId: +userId,
@@ -49,32 +62,53 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   });
   await prisma.$disconnect();
 
-  return new Response(
-    JSON.stringify({
-      ...connectionRequest,
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+  return serverResponse({
+    success: true,
+    message: "Connection Request berhasil dibuat",
+    data: connectionRequest,
+    status: 200
+  });
 }
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
-  await prisma.$connect();
+
+  await prisma.$connect;
+  const user = await prisma.user.findUnique({
+    where: { id: +userId }
+  });
+
+  if (!user) {
+    await prisma.$disconnect();
+    return InvalidUserResponse;
+  }
+
   const targetUser = await prisma.user.findUnique({
     where: { id: +targetId },
   });
+
   if (!targetUser) {
     await prisma.$disconnect();
-    return new Response("Target user not found", { status: 404 });
+    return InvalidTargetUserResponse;
   }
+
+  const connectionRequest = await prisma.connectionRequest.findFirst({
+    where: {
+      fromId: +targetId,
+      toId: +userId,
+    },
+  })
+
+  if (!connectionRequest) {
+    return serverResponse({success: false, message: "Invalid Connection", error: "Connection Request tidak ditemukan", status: 403})
+  }
+
   const transaction = await prisma.$transaction([
     prisma.connection.create({
       data: {
@@ -110,33 +144,37 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
   ]);
   const [connection1, connection2, _] = transaction;
   await prisma.$disconnect();
-  return new Response(
-    JSON.stringify({
-      connection_1: connection1,
-      connection_2: connection2,
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+  return serverResponse({success: true, message: "Connection succesful created", data: {connection1, connection2}, status: 200});
 }
 
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
-  await prisma.$connect();
+
+  await prisma.$connect;
+  const user = await prisma.user.findUnique({
+    where: { id: +userId }
+  });
+
+  if (!user) {
+    await prisma.$disconnect();
+    return InvalidUserResponse;
+  }
+
   const targetUser = await prisma.user.findUnique({
     where: { id: +targetId },
   });
+
   if (!targetUser) {
     await prisma.$disconnect();
-    return new Response("Target user not found", { status: 404 });
+    return InvalidTargetUserResponse;
   }
+
   const connr = await prisma.connectionRequest.deleteMany({
     where: {
       fromId: +targetId,
@@ -150,10 +188,5 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
   });
 
   await prisma.$disconnect();
-  return new Response(
-    JSON.stringify({
-      deleted: connr,
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+  return serverResponse({success: true, message: `Deleted Connection Request to ${targetUser.fullname}`, data: connr, status: 200});
 }
