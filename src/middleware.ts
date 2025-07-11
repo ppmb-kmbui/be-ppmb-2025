@@ -16,7 +16,9 @@ export async function middleware(req: NextRequest) {
       headers.set("X-User-Admin", payload.isAdmin! as string);
     }
     return NextResponse.next({
-      request: {},
+      request: {
+        headers
+      },
     });
   } catch (e) {
     return serverResponse({success: false, message: "Tidak diizinkan", error: "JWT Token tidak valid"})
