@@ -144,7 +144,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
   ]);
   const [connection1, connection2, _] = transaction;
   await prisma.$disconnect();
-  return serverResponse({success: true, message: "Connection succesful created", data: {connection1, connection2}, status: 200});
+  return serverResponse({success: true, message: "Connection succesful created", data: {connection1: connection1, connection2: connection2}, status: 200});
 }
 
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
