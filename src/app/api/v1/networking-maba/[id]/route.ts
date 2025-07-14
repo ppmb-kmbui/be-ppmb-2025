@@ -91,9 +91,9 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan dalam DB tidak cukup", status: 400});
   }
 
-  const randomNumbers: number = Math.floor(Math.random() * firstRandomQuestions.length);
+  const randomNumber: number = Math.floor(Math.random() * firstRandomQuestions.length);
 
-  const q1 = firstRandomQuestions[randomNumbers].id;
+  const q1 = firstRandomQuestions[randomNumber].id;
 
   const newTask = await prisma.networkingTask.create({
     data: {
@@ -116,23 +116,31 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     },
   });
 
-  if (twoRandomQuestion.length < 2) {
+  if (twoRandomQuestion.length < 1) {
     await prisma.$disconnect();
     return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan dalam DB tidak cukup", status: 400});
   }
 
+  let firstRandom: number = Math.floor(Math.random() * twoRandomQuestion.length) 
+  let secondRandom: number = Math.floor(Math.random() * twoRandomQuestion.length) 
+  secondRandom = (secondRandom === firstRandom) ? (secondRandom + 1) % twoRandomQuestion.length : secondRandom;
 
-  await prisma.$transaction(
-    mandatoryQuestions.map((q) =>
-      prisma.questionTask.create({
-        data: {
-          fromId: newTask.fromId,
-          toId: newTask.toId,
-          questionId: q.id,
-        },
-      })
-    )
-  );
+  await prisma.$transaction([
+    prisma.questionTask.create({
+      data: {
+        fromId: newTask.fromId, 
+        toId: newTask.toId, 
+        questionId: twoRandomQuestion[firstRandom].id
+      },
+    }),
+    prisma.questionTask.create({
+      data: {
+        fromId: newTask.fromId, 
+        toId: newTask.toId, 
+        questionId: twoRandomQuestion[secondRandom].id
+      },
+    })
+  ]);
 
   const result = await prisma.networkingTask.findUnique({
     where: {
@@ -161,11 +169,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   });
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify(result), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return serverResponse({success: true, message: "Berhasil memperoleh pertanyaan networking", data: result, status: 200});
 }
 
 interface SubmitNetworkingTaskDTO {
