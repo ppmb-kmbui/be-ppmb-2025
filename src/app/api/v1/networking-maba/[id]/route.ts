@@ -1,18 +1,19 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
+
   await prisma.$connect();
-  const conn = await prisma.networkingTask.findUnique({
+
+  const connection = await prisma.networkingTask.findUnique({
     where: {
       fromId_toId: {
         fromId: +userId,
@@ -27,40 +28,38 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       },
     },
   });
-  if (!conn) {
+
+  if (!connection) {
     await prisma.$disconnect();
-    return new Response("Not connected", { status: 404 });
+    return serverResponse({success: false, message: "Data gagal diambil", error: "Anda tidak terhubung dengan user ini!", status: 404});
+  } else {
+    return serverResponse({success: true, message: "Informasi berhasil diperoleh!", data: connection, status: 200})
   }
-  return new Response(JSON.stringify(conn), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
 }
 
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
+
   await prisma.$connect();
-  const conn = await prisma.connection.findFirst({
+  const connection = await prisma.connection.findFirst({
     where: {
       fromId: +userId,
       toId: +targetId,
     },
   });
-  if (!conn) {
+
+  if (!connection) {
     await prisma.$disconnect();
-    return new Response("Not connected", { status: 404 });
+    return serverResponse({success: false, message: "Operasi gagal", error: "Anda tidak terhubung dengan user ini!", status: 400});
   }
 
-  const net = await prisma.networkingTask.findUnique({
+  const networking = await prisma.networkingTask.findUnique({
     where: {
       fromId_toId: {
         fromId: +userId,
@@ -75,75 +74,74 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       },
     },
   });
-  if (net) {
+
+  if (networking) {
     await prisma.$disconnect();
-    return new Response("Already created", { status: 400 });
+    return serverResponse({success: true, message: "Operasi gagal", error: "Anda sudah networking dengan user ini", status: 400})
   }
 
-  const questionCount = await prisma.question.count({
+  const firstRandomQuestions = await prisma.question.findMany({
     where: {
-      is_mandatory: false,
-    },
-  });
-  if (questionCount < 2) {
-    await prisma.$disconnect();
-    return new Response("Not enough questions", { status: 400 });
-  }
-
-  const randomNumbers: number[] = [];
-  const randomQuestions = await prisma.question.findMany({
-    where: {
-      is_mandatory: false,
-    },
-  });
-  while (randomNumbers.length < 2) {
-    const randomNumber = Math.floor(Math.random() * randomQuestions.length);
-    if (!randomNumbers.includes(randomNumber)) {
-      randomNumbers.push(randomNumber);
+      group_id: 1,
     }
+  });
+
+  if (firstRandomQuestions.length < 1) {
+    await prisma.$disconnect();
+    return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan dalam DB tidak cukup", status: 400});
   }
 
-  const [idx1, idx2] = randomNumbers;
-  const q1 = randomQuestions[idx1].id;
-  const q2 = randomQuestions[idx2].id;
+  const randomNumber: number = Math.floor(Math.random() * firstRandomQuestions.length);
+
+  const q1 = firstRandomQuestions[randomNumber].id;
+
   const newTask = await prisma.networkingTask.create({
     data: {
       fromId: +userId,
       toId: +targetId,
     },
   });
+
+  await prisma.questionTask.create({
+    data: {
+      fromId: newTask.fromId, 
+      toId: newTask.toId, 
+      questionId: q1
+    },
+  });
+
+  const twoRandomQuestion = await prisma.question.findMany({
+    where: {
+      group_id: 2,
+    },
+  });
+
+  if (twoRandomQuestion.length < 1) {
+    await prisma.$disconnect();
+    return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan dalam DB tidak cukup", status: 400});
+  }
+
+  let firstRandom: number = Math.floor(Math.random() * twoRandomQuestion.length) 
+  let secondRandom: number = Math.floor(Math.random() * twoRandomQuestion.length) 
+  secondRandom = (secondRandom === firstRandom) ? (secondRandom + 1) % twoRandomQuestion.length : secondRandom;
+
   await prisma.$transaction([
     prisma.questionTask.create({
       data: {
-        fromId: newTask.fromId,
-        toId: newTask.toId,
-        questionId: q1,
+        fromId: newTask.fromId, 
+        toId: newTask.toId, 
+        questionId: twoRandomQuestion[firstRandom].id
       },
     }),
     prisma.questionTask.create({
       data: {
-        fromId: newTask.fromId,
-        toId: newTask.toId,
-        questionId: q2,
+        fromId: newTask.fromId, 
+        toId: newTask.toId, 
+        questionId: twoRandomQuestion[secondRandom].id
       },
-    }),
+    })
   ]);
-  const mandatoryQuestions = await prisma.question.findMany({
-    where: {
-      is_mandatory: true,
-    },
-  });
-  await prisma.$transaction(
-    mandatoryQuestions.map((q) =>
-      prisma.questionTask.create({
-        data: {
-          fromId: newTask.fromId,
-          toId: newTask.toId,
-          questionId: q.id,
-        },
-      })
-    )
-  );
+
   const result = await prisma.networkingTask.findUnique({
     where: {
       fromId_toId: {
@@ -171,11 +169,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   });
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify(result), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return serverResponse({success: true, message: "Berhasil memperoleh pertanyaan networking", data: result, status: 200});
 }
 
 interface SubmitNetworkingTaskDTO {

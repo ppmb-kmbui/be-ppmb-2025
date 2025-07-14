@@ -20,4 +20,4 @@ export default function serverResponse <T> (
 export const InvalidUserResponse = serverResponse({success: false, message: "Invalid", error: "User tidak ditemukan", status: 404});
 export const InvalidTargetUserResponse = serverResponse({success: false, message: "Invalid", error: "Target User tidak ditemukan", status: 404});
 
-export const InvalidHeadersResponse = serverResponse({success: false, message: "Not Authorized", error: "Headers tidak ditemukan", status: 401});
+export const InvalidHeadersResponse = serverResponse({success: false, message: "Not Authorized", error: "Headers tidak ditemukan", status: 400});
