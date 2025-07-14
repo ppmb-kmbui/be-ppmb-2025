@@ -104,6 +104,10 @@ model AttendanceRecord {
   @@map("attendance_records")
 }
 
+/*
+group_id = -1, means the question generated from user it self.
+*/
+
 model Question {
   id           Int            @id @default(autoincrement())
   question     String
