@@ -109,7 +109,7 @@ model Question {
   question     String
   created_at   DateTime       @default(now())
   updated_at   DateTime       @default(now()) @updatedAt
-  is_mandatory Boolean        @default(false) @map("is_mandatory")
+  group_id     Int            @default(1)
   tasks        QuestionTask[]
 
   @@map("questions")
@@ -144,7 +144,7 @@ model QuestionKating{
   question     String
   created_at   DateTime       @default(now())
   updated_at   DateTime       @default(now()) @updatedAt
-  is_mandatory Boolean        @default(false) @map("is_mandatory")
+  group_id     Int            @default(1)
   tasks        QuestionKatingTask[]
 
   @@map("questions_kating")
