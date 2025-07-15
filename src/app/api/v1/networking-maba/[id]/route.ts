@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
+import { Result } from "postcss";
 
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   if (!connection) {
     await prisma.$disconnect();
-    return serverResponse({success: false, message: "Data gagal diambil", error: "Anda tidak terhubung dengan user ini!", status: 404});
+    return serverResponse({success: false, message: "Data gagal diambil", error: "Anda belum melakukan networking dengan user ini!", status: 404});
   } else {
     return serverResponse({success: true, message: "Informasi berhasil diperoleh!", data: connection, status: 200})
   }
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
   if (networking) {
     await prisma.$disconnect();
-    return serverResponse({success: true, message: "Operasi gagal", error: "Anda sudah networking dengan user ini", status: 400})
+    return serverResponse({success: true, message: "Operasi gagal", error: "Anda sudah mendapat pertanyaan networking dengan user ini", status: 400})
   }
 
   const firstRandomQuestions = await prisma.question.findMany({
@@ -174,46 +175,61 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
 interface SubmitNetworkingTaskDTO {
   img_url: string;
-  score: number;
   answers: {
     questionId: number;
     answer: string;
-  }[];
+  }[],
+  secondary_answers: {
+    question: string,
+    answer: string
+  }
 }
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
   const targetId = params.id;
-  if (!targetId) {
-    return new Response("Bad Request", { status: 400 });
+
+  if (!userId || !targetId) {
+    return InvalidHeadersResponse;
   }
+
   const body = (await req.json()) as SubmitNetworkingTaskDTO;
-  if (!body.img_url || !body.answers) {
-    return new Response("Bad Request", { status: 400 });
-  }
-  if (body?.score) {
-    return new Response(
-      "Tidak semudah itu fergusso! https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      { status: 403 }
-    );
+
+  if (!body.img_url || !body.answers || !body.secondary_answers) {
+    return serverResponse({success: false, message: "Request body tidak lengkap" ,error: "Pastikan img_url, answers dan secondary_answers tidak kosong", status: 400});
   }
 
   await prisma.$connect();
 
-  const questions = await prisma.questionTask.findMany({
-    where: {
-      fromId: +userId,
-      toId: +targetId,
-    },
-  });
+  const networking_tasks = await prisma.networkingTask.findFirst(
+    {
+      where: {
+        fromId: +userId,
+        toId: +targetId
+      }, 
+      select: {
+        questions: true,
+        is_done: true
+      }
+    }
+  )
+
+  const questions = networking_tasks?.questions;
+  
+  if (!questions) {
+    await prisma.$disconnect();
+    return serverResponse({success: false, message: "Operasi gagal" ,error: "User belum melakukan networking dengan target user", status: 400});
+  }
+
+  if(networking_tasks.is_done) {
+    await prisma.$disconnect();
+    return serverResponse({success: false, message: "Operasi gagal" ,error: "User sudah selesai networking dengan target user", status: 400});
+  }
 
   if (questions.length !== body.answers.length) {
     await prisma.$disconnect();
-    return new Response("Bad Request", { status: 400 });
+    return serverResponse({success: false, message: "Request body tidak valid" ,error: "Banyak question tidak sama dengan template yang disediakan", status: 400});
   }
 
   if (
@@ -223,7 +239,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     )
   ) {
     await prisma.$disconnect();
-    return new Response("Bad Request", { status: 400 });
+    return serverResponse({success: false, message: "Request body tidak valid" ,error: "Id question tidak sama dengan template yang disediakan", status: 400});
   }
 
   await prisma.$transaction(
@@ -242,6 +258,22 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       })
     )
   );
+
+  const user_question = await prisma.question.create({
+    data: {
+      question: body.secondary_answers.question,
+      group_id: -1
+    }
+  })
+
+  await prisma.questionTask.create({
+    data: {
+      fromId: +userId,
+      toId: +targetId,
+      questionId: user_question.id,
+      answer: body.secondary_answers.answer,
+    }
+  });
 
   const res = await prisma.networkingTask.update({
     where: {
@@ -284,9 +316,10 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
   });
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify(res), {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  return serverResponse({
+    success: true, 
+    message: "Berhasil submit networking",
+    data: res,
+    status: 200
   });
 }

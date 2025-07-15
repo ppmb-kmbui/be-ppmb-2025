@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
   await prisma.$connect();
   const conns = await prisma.networkingTask.findMany({
@@ -30,10 +31,10 @@ export async function GET(req: NextRequest) {
     },
   });
   await prisma.$disconnect();
-  return new Response(JSON.stringify(conns), {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  return serverResponse({
+    success: true,
+    message: "Berhasil mengambil data networking maba",
+    data: conns,
+    status: 200,
   });
 }
-
