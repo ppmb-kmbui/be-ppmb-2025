@@ -44,13 +44,6 @@ export async function GET(req: NextRequest) {
     await prisma.$disconnect();
     return serverResponse({success: true, message: "Succesfully retrieved all connection request", data: {received: connection_requests_recieved, sent: connection_requests_sent}, status: 200});
     
-    return new Response(
-      JSON.stringify({
-        connection_requests_recieved,
-        connection_requests_sent,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
   } catch (error) {
     await prisma.$disconnect;
     return InvalidUserResponse;

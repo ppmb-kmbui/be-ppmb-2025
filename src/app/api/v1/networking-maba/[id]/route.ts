@@ -32,7 +32,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   if (!connection) {
     await prisma.$disconnect();
-    return serverResponse({success: false, message: "Data gagal diambil", error: "Anda tidak terhubung dengan user ini!", status: 404});
+    return serverResponse({success: false, message: "Data gagal diambil", error: "Anda belum melakukan networking dengan user ini!", status: 404});
   } else {
     return serverResponse({success: true, message: "Informasi berhasil diperoleh!", data: connection, status: 200})
   }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
   if (networking) {
     await prisma.$disconnect();
-    return serverResponse({success: true, message: "Operasi gagal", error: "Anda sudah networking dengan user ini", status: 400})
+    return serverResponse({success: true, message: "Operasi gagal", error: "Anda sudah mendapat pertanyaan networking dengan user ini", status: 400})
   }
 
   const firstRandomQuestions = await prisma.question.findMany({
