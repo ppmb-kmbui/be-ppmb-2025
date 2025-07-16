@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
+import { create } from "domain";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest, { params }: {params: Promise<{id: string}>}) {
@@ -7,8 +8,8 @@ export async function GET(req: NextRequest, { params }: {params: Promise<{id: st
     const targetId = (await params).id;
     await prisma.$connect;
 
-    const response = checkUser(userId, targetId);
-    if (response) return response;
+    const response = await checkUser(userId, targetId);
+    if (response !== null) return response;
 
     const networkingKating = await prisma.networkingKatingTask.findFirst({
         where: {
@@ -43,8 +44,8 @@ export async function POST(req: NextRequest, { params }: {params: Promise<{id: s
     const targetId = (await params).id;
     await prisma.$connect;
 
-    const response = checkUser(userId, targetId);
-    if (response) return response;
+    const response = await checkUser(userId, targetId);
+    if (response !== null) return response;
 
     const friends = await prisma.connection.findFirst({
         where: {
@@ -70,51 +71,20 @@ export async function POST(req: NextRequest, { params }: {params: Promise<{id: s
         return serverResponse({success: false, message: "Operasi gagal", error: "Anda sudah mendapatkan pertanyaan dari kating ini", status: 400});
     }
 
-    try {
-        await prisma.questionKatingTask.createMany({
-            data: [
-                {
-                    questionId: 1,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 2,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 3,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 4,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 5,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 6,
-                    fromId: +userId!,
-                    toId: +targetId,
-                },
-                {
-                    questionId: 7,
-                    fromId: +userId!,
-                    toId: +targetId,
-                }
-            ]
-        })
-    } catch (error) {
+    const numberOfQuestions: number = await prisma.questionKating.count({
+        where: {
+            id: {
+                gte: 1,
+                lte: 7
+            }
+        }
+    });
+
+    if (numberOfQuestions !== 7) {
         await prisma.$disconnect;
-        return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan tidak cukup", status: 500});
-    }
-    
+        return serverResponse({success: false, message: "Operasi gagal", error: "Pertanyaan dalam DB tidak cukup", status: 500});
+    } 
+
     const newNetworkingKating = await prisma.networkingKatingTask.create({
         data: {
             fromId: +userId!,
@@ -142,7 +112,11 @@ export async function POST(req: NextRequest, { params }: {params: Promise<{id: s
                     password: true,
                 },
             },
-            questions: true,
+            questions: {
+                include: {
+                    question: true,
+                },
+            },
         }
     });
 
@@ -195,8 +169,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{id: s
 
     await prisma.$connect;
 
-    const response = checkUser(userId, targetId);
-    if (response) return response;
+    const response = await checkUser(userId, targetId);
+    if (response !== null) return response;
 
     const networkingKating = await prisma.networkingKatingTask.findFirst({
         where: {
@@ -212,6 +186,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{id: s
         await prisma.$disconnect;
         return serverResponse({success: false, message: "Operasi gagal", error: "Anda belum mengambil pertanyaan dari kating ini", status: 400});
     }
+
+    const newQuestion = await prisma.questionKating.create({
+        data: {
+            question: body.optionalAnswes.question,
+            group_id: -1
+        }
+    });
+
+    await prisma.questionKatingTask.create({
+        data: {
+            fromId: +userId!,
+            toId: +targetId,
+            questionId: newQuestion.id,
+            answer: body.optionalAnswes.answer
+        }
+    });
 
     await prisma.$transaction(
         body.answers.map((answerObj, idx) =>
@@ -300,4 +290,6 @@ async function checkUser(userId: string | null, targetId: string | null) {
         await prisma.$disconnect;
         return serverResponse({success: false, message: "Operasi gagal", error: "Khusus mahasiswa baru saja", status: 400});
     }
+
+    return null;
 }
