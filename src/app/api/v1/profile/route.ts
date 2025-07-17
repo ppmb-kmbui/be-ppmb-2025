@@ -30,30 +30,98 @@ import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/u
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: string
- *                       example: clwq1k2z90000v3l5b8k3z9k1
- *                     fullname:
- *                       type: string
- *                       example: Danniel
+ *                       type: integer
+ *                       example: 7
  *                     email:
  *                       type: string
- *                       example: danniel@email.com
+ *                       example: dennis@gmail.com
+ *                     fullname:
+ *                       type: string
+ *                       example: Dennis 25
  *                     imgUrl:
  *                       type: string
- *                       example: https://example.com/avatar.jpg
+ *                       example: rickRolll
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-07-08T11:51:35.194Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-07-08T11:51:35.194Z"
  *                     faculty:
  *                       type: string
- *                       example: Ilmu Komputer
+ *                       example: Computer Science
+ *                     isAdmin:
+ *                       type: boolean
+ *                       example: false
  *                     batch:
  *                       type: integer
- *                       example: 2023
+ *                       example: 2025
  *                     followers:
  *                       type: integer
- *                       example: 10
+ *                       example: 4
  *                     networking_tasks:
  *                       type: array
  *                       items:
  *                         type: object
+ *                         example:
+ *                           fromId: 7
+ *                           toId: 15
+ *                           img_url: "https://example.com/image.jpg"
+ *                           is_done: true
+ *                           score: 0
+ *                           questions:
+ *                             - questionId: 1
+ *                               fromId: 7
+ *                               toId: 15
+ *                               answer: "Halo cantik wiwiw"
+ *                               question:
+ *                                 id: 1
+ *                                 question: "Jalur masuk UI serta alasan mengambil jurusan tersebut"
+ *                                 created_at: "2025-07-14T11:15:45.101Z"
+ *                                 updated_at: "2025-07-14T11:15:45.101Z"
+ *                                 group_id: 1
+ *                             - questionId: 4
+ *                               fromId: 7
+ *                               toId: 15
+ *                               answer: "Halo cantik wiwiw"
+ *                               question:
+ *                                 id: 4
+ *                                 question: "Apa satu kebiasaan kecil yang ingin kamu tingkatkan selama kuliah?"
+ *                                 created_at: "2025-07-14T11:15:45.252Z"
+ *                                 updated_at: "2025-07-14T11:15:45.252Z"
+ *                                 group_id: 2
+ *                             - questionId: 6
+ *                               fromId: 7
+ *                               toId: 15
+ *                               answer: "Halo cantik wiwiw"
+ *                               question:
+ *                                 id: 6
+ *                                 question: "Apa cita-cita atau impianmu, dan kenapa memilih itu"
+ *                                 created_at: "2025-07-14T11:15:45.252Z"
+ *                                 updated_at: "2025-07-14T11:15:45.252Z"
+ *                                 group_id: 2
+ *                             - questionId: 14
+ *                               fromId: 7
+ *                               toId: 15
+ *                               answer: "Karena gw sangat sangat tampan omaga"
+ *                               question:
+ *                                 id: 14
+ *                                 question: "Mengapa kamu sangat tampan omaga?"
+ *                                 created_at: "2025-07-15T08:25:21.955Z"
+ *                                 updated_at: "2025-07-15T08:25:21.955Z"
+ *                                 group_id: -1
+ *                           to:
+ *                             id: 15
+ *                             email: "vincent@gmail.com"
+ *                             fullname: "Vincent 25"
+ *                             imgUrl: "shit"
+ *                             createdAt: "2025-07-15T08:03:38.632Z"
+ *                             updatedAt: "2025-07-15T08:03:38.632Z"
+ *                             faculty: "Computer Science"
+ *                             isAdmin: false
+ *                             batch: 2025
  *       401:
  *         description: Tidak diizinkan (JWT tidak valid atau header tidak ditemukan)
  *         content:
@@ -70,6 +138,85 @@ import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/u
  *                 error:
  *                   type: string
  *                   example: JWT Token tidak valid
+ *   put:
+ *     summary: Update profil user (hanya imgUrl)
+ *     description: Endpoint ini membutuhkan JWT token pada header Authorization. Hanya field imgUrl yang dapat diupdate.
+ *     tags:
+ *       - Profile
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imgUrl:
+ *                 type: string
+ *                 example: https://example.com/avatar.jpg
+ *     responses:
+ *       200:
+ *         description: Berhasil memperbarui profil user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Berhasil memperbarui profil
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 7
+ *                     email:
+ *                       type: string
+ *                       example: dennis@gmail.com
+ *                     fullname:
+ *                       type: string
+ *                       example: Dennis 25
+ *                     imgUrl:
+ *                       type: string
+ *                       example: https://example.com/avatar.jpg
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-07-08T11:51:35.194Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-07-08T11:51:35.194Z"
+ *                     faculty:
+ *                       type: string
+ *                       example: Computer Science
+ *                     isAdmin:
+ *                       type: boolean
+ *                       example: false
+ *                     batch:
+ *                       type: integer
+ *                       example: 2025
+ *       400:
+ *         description: Gagal memperbarui profil (imgUrl wajib diisi)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Gagal memperbarui profil
+ *                 error:
+ *                   type: string
+ *                   example: imgUrl wajib
  */
 
 export async function GET(req: NextRequest) {

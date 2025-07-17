@@ -7,7 +7,10 @@ import { NextRequest } from "next/server";
  * /api/v1/friends:
  *   get:
  *     summary: Ambil daftar teman (selain diri sendiri, bisa search by name)
- *     description: Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;). Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT. Jika diberikan query `name`, maka hasil akan difilter berdasarkan nama.
+ *     description: |
+ *       Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;).
+ *       Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT.
+ *       Jika diberikan query `name`, maka hasil akan difilter berdasarkan nama.
  *     tags:
  *       - Friends
  *     security:

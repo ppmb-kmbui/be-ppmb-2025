@@ -7,9 +7,12 @@ import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/u
  * /api/v1/connection-requests:
  *   get:
  *     summary: Ambil semua permintaan koneksi (dikirim & diterima)
- *     description: Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;). Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT.
+ *     description: |
+ *       Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;).
+ *       Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT.
+ *       Jika diberikan query `name`, maka hasil akan difilter berdasarkan nama.
  *     tags:
- *       - Connect
+ *       - Connection-request
  *     security:
  *       - bearerAuth: []
  *     responses:

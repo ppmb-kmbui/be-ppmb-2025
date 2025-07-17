@@ -7,7 +7,8 @@ import { NextRequest } from "next/server";
  * /api/v1/connect:
  *   get:
  *     summary: Ambil semua koneksi user (pertemanan)
- *     description: Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;). Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT.
+ *     description: |
+ *      Endpoint ini membutuhkan JWT token pada header Authorization(format: Bearer &lt;token&gt;). Token akan divalidasi oleh      middleware, dan userId akan diambil dari JWT.
  *     tags:
  *       - Connect
  *     security:
