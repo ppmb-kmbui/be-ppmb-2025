@@ -2,6 +2,125 @@ import { prisma } from "@/lib/prisma";
 import serverResponse, { InvalidHeadersResponse, InvalidTargetUserResponse, InvalidUserResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
+/**
+ * @swagger
+ * /api/v1/connect/{id}:
+ *   post:
+ *     summary: Kirim permintaan koneksi ke user lain (pertemanan)
+ *     tags:
+ *       - Connect
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID target user yang ingin dikirimi permintaan koneksi
+ *     responses:
+ *       200:
+ *         description: Permintaan koneksi berhasil dibuat
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Connection Request berhasil dibuat
+ *                 data:
+ *                   type: object
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Header tidak ditemukan
+ *       404:
+ *         description: User tidak ditemukan
+ *       409:
+ *         description: Permintaan koneksi sudah ada atau user sudah mengirim permintaan ke Anda
+ * 
+ *   put:
+ *     summary: Terima permintaan koneksi dari user lain
+ *     tags:
+ *       - Connect
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID user yang mengirim permintaan koneksi
+ *     responses:
+ *       200:
+ *         description: Koneksi berhasil dibuat
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Connection succesful created
+ *                 data:
+ *                   type: object
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Header tidak ditemukan
+ *       403:
+ *         description: Connection Request tidak ditemukan
+ *       404:
+ *         description: User tidak ditemukan
+ * 
+ *   delete:
+ *     summary: Hapus permintaan koneksi yang dikirim ke user lain
+ *     tags:
+ *       - Connect
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID user yang mengirim permintaan koneksi
+ *     responses:
+ *       200:
+ *         description: Permintaan koneksi berhasil dihapus
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Deleted Connection Request to Danniel
+ *                 data:
+ *                   type: object
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Header tidak ditemukan
+ *       404:
+ *         description: User tidak ditemukan
+ */
+
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
