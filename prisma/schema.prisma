@@ -140,10 +140,15 @@ model NetworkingTask {
   img_url   String?
   questions QuestionTask[]
   is_done   Boolean        @default(false) @map("is_done")
-  score     Int            @default(0)
+  score     Int            @default(0) // Probably gonna delete this one
 
   @@id([fromId, toId])
 }
+
+/*
+group_id = -1, means the question generated from user it self
+group_id = 1, means pertanyaan nomor 1 - 7 (default)
+*/
 
 model QuestionKating{
   id           Int            @id @default(autoincrement())
@@ -175,7 +180,7 @@ model NetworkingKatingTask {
   img_url   String?
   questions QuestionKatingTask[]
   is_done   Boolean        @default(false) @map("is_done")
-  score     Int            @default(0)
+  score     Int            @default(0) // Probably gonna delete this one
 
   @@id([fromId, toId])
 }
