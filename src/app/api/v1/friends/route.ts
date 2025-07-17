@@ -2,6 +2,109 @@ import { prisma } from "@/lib/prisma";
 import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
+/**
+ * @swagger
+ * /api/v1/friends:
+ *   get:
+ *     summary: Ambil daftar teman (selain diri sendiri, bisa search by name)
+ *     description: Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;). Token akan divalidasi oleh middleware, dan userId akan diambil dari JWT. Jika diberikan query `name`, maka hasil akan difilter berdasarkan nama.
+ *     tags:
+ *       - Friends
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Nama teman yang ingin dicari (opsional)
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil daftar teman
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Friends Succesfully retrieved
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     friends:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 2
+ *                           email:
+ *                             type: string
+ *                             example: danniel@email.com
+ *                           fullname:
+ *                             type: string
+ *                             example: Danniel
+ *                           faculty:
+ *                             type: string
+ *                             example: Ilmu Komputer
+ *                           imgUrl:
+ *                             type: string
+ *                             example: https://example.com/avatar.jpg
+ *                           batch:
+ *                             type: integer
+ *                             example: 2023
+ *                           status:
+ *                             type: string
+ *                             example: not_connected
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Header tidak ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Not Authorized
+ *                 error:
+ *                   type: string
+ *                   example: Headers tidak ditemukan
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+ *       404:
+ *         description: User tidak ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Invalid
+ *                 error:
+ *                   type: string
+ *                   example: User tidak ditemukan
+ *                 status:
+ *                   type: integer
+ *                   example: 404
+ */
+
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
