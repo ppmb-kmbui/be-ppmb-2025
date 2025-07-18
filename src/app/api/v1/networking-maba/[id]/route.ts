@@ -323,3 +323,305 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     status: 200
   });
 }
+
+
+/**
+ * @swagger
+ * /api/v1/networking-maba/{id}:
+ *   get:
+ *     summary: Ambil detail networking maba dengan user tertentu
+ *     description: |
+ *       Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;).
+ *       Mengembalikan detail networking task dengan mahasiswa baru yang sudah dilakukan. Question bisa 3 atau 4, Jika 3 berati masih belum menjawab tapi 4 berati sudah menjawab karena user sudah memberikan optional question nya
+ *     tags:
+ *       - Networking Maba
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID target user untuk networking
+ *     responses:
+ *       200:
+ *         description: Informasi berhasil diperoleh
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Informasi berhasil diperoleh!
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fromId:
+ *                       type: integer
+ *                       example: 1
+ *                     toId:
+ *                       type: integer
+ *                       example: 2
+ *                     img_url:
+ *                       type: string
+ *                       example: https://example.com/networking.jpg
+ *                     is_done:
+ *                       type: boolean
+ *                       example: true
+ *                     score:
+ *                       type: integer
+ *                       example: 85
+ *                     questions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           questionId:
+ *                             type: integer
+ *                             example: 1
+ *                           answer:
+ *                             type: string
+ *                             example: Jawaban pertanyaan
+ *                           question:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                                 example: 1
+ *                               question:
+ *                                 type: string
+ *                                 example: Apa hobi kamu?
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Header tidak ditemukan
+ *       404:
+ *         description: Data tidak ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Data gagal diambil
+ *                 error:
+ *                   type: string
+ *                   example: Anda belum melakukan networking dengan user ini!
+ *                 status:
+ *                   type: integer
+ *                   example: 404
+ *  
+ *   post:
+ *     summary: Buat networking maba baru dengan user tertentu
+ *     description: |
+ *       Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer &lt;token&gt;).
+ *       Membuat networking task baru dengan mahasiswa baru dan memberikan pertanyaan random. **Post selalu mengeluarkan 3 buah       question**
+ *     tags:
+ *       - Networking Maba
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID target user untuk networking
+ *     responses:
+ *       200:
+ *         description: Berhasil memperoleh pertanyaan networking
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Berhasil memperoleh pertanyaan networking
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fromId:
+ *                       type: integer
+ *                       example: 1
+ *                     toId:
+ *                       type: integer
+ *                       example: 2
+ *                     img_url:
+ *                       type: string
+ *                       example: null
+ *                     is_done:
+ *                       type: boolean
+ *                       example: false
+ *                     score:
+ *                       type: integer
+ *                       example: 0
+ *                     to:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 2
+ *                         email:
+ *                           type: string
+ *                           example: target@email.com
+ *                         fullname:
+ *                           type: string
+ *                           example: Target User
+ *                     questions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           questionId:
+ *                             type: integer
+ *                             example: 1
+ *                           answer:
+ *                             type: string
+ *                             example: null
+ *                           question:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                                 example: 1
+ *                               question:
+ *                                 type: string
+ *                                 example: Apa hobi kamu?
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Operasi gagal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Operasi gagal
+ *                 error:
+ *                   type: string
+ *                   example: Anda tidak terhubung dengan user ini!
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+ * 
+ *   put:
+ *     summary: Submit jawaban networking maba
+ *     description: |
+ *       🚩 **Endpoint ini membutuhkan JWT token pada header Authorization (format: Bearer <token>).**
+ *       Submit jawaban untuk networking task dengan mahasiswa baru. answers akan terdiri dari 3 questions
+ *     tags:
+ *       - Networking Maba
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID target user untuk networking
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               img_url:
+ *                 type: string
+ *                 example: https://example.com/networking.jpg
+ *               answers:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     questionId:
+ *                       type: integer
+ *                       example: 1
+ *                     answer:
+ *                       type: string
+ *                       example: Jawaban saya
+ *               secondary_answers:
+ *                 type: object
+ *                 properties:
+ *                   question:
+ *                     type: string
+ *                     example: Pertanyaan tambahan
+ *                   answer:
+ *                     type: string
+ *                     example: Jawaban tambahan
+ *     responses:
+ *       200:
+ *         description: Berhasil submit networking
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Berhasil submit networking
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fromId:
+ *                       type: integer
+ *                       example: 1
+ *                     toId:
+ *                       type: integer
+ *                       example: 2
+ *                     img_url:
+ *                       type: string
+ *                       example: https://example.com/networking.jpg
+ *                     is_done:
+ *                       type: boolean
+ *                       example: true
+ *                     score:
+ *                       type: integer
+ *                       example: 0
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: Request body tidak lengkap atau tidak valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Request body tidak lengkap
+ *                 error:
+ *                   type: string
+ *                   example: Pastikan img_url, answers dan secondary_answers tidak kosong
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+ */
