@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
-  await prisma.$connect();
 
-  const exp = await prisma.explorerSubmission.findFirst({
+  await prisma.$connect();
+  const explorerSubmission = await prisma.explorerSubmission.findFirst({
     where: {
       userId: +userId,
     },
@@ -16,20 +17,19 @@ export async function GET(req: NextRequest) {
 
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify(exp), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return serverResponse({success: true, message: "Berhasil memperoleh submission anda", data: explorerSubmission, status: 200});
 }
 
 export async function POST(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
 
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
+
   const body = await req.json();
   await prisma.$connect();
+  
   const exists = await prisma.explorerSubmission.findFirst({
     where: {
       userId: +userId,
@@ -37,28 +37,24 @@ export async function POST(req: NextRequest) {
   });
 
   if (exists) {
-    const exp = await prisma.explorerSubmission.update({
+    const explorerSubmission = await prisma.explorerSubmission.update({
       where: { id: exists.id },
       data: {
         ...body,
       },
     });
+
     await prisma.$disconnect();
-    return new Response(JSON.stringify(exp), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return serverResponse({success: true, message: "Berhasil memperoleh submission anda", data: explorerSubmission, status: 200});
   }
 
-  const exp = await prisma.explorerSubmission.create({
+  const explorerSubmission = await prisma.explorerSubmission.create({
     data: {
       ...body,
       userId: +userId,
     },
   });
+  
   await prisma.$disconnect();
-  return new Response(JSON.stringify(exp), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return serverResponse({success: true, message: "Berhasil memperoleh submission anda", data: explorerSubmission, status: 200});
 }
