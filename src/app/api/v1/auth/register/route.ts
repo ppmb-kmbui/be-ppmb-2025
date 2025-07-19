@@ -2,22 +2,202 @@ import { NextRequest } from "next/server";
 import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z, ZodError} from "zod";
+import serverResponse from "@/utils/serverResponse";
+import { ValidationError } from "@/types/api-type";
+
+const UserSchema = z.object({
+  fullname: z.string().min(3, "Nama lengkap minimal 3 karakter"),
+  email: z.string().email("Tolong masukan email yang sesuai"),
+  password: z.string().min(8, "Password minimal 8 karakter"),
+  imgUrl: z.string(),
+  faculty: z.string(),
+  batch: z.number(),
+});
+
+/**
+ * @swagger
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullname:
+ *                 type: string
+ *                 example: Danniel
+ *               email:
+ *                 type: string
+ *                 example: Danniel@email.com
+ *               password:
+ *                 type: string
+ *                 example: DannielSigma
+ *               imgUrl:
+ *                 type: string
+ *                 example: https://example.com/avatar.jpg
+ *               faculty:
+ *                 type: string
+ *                 example: Ilmu Komputer
+ *               batch:
+ *                 type: integer
+ *                 example: 2023
+ *     responses:
+ *       200:
+ *         description: Berhasil membuat akun
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Berhasil membuat akun
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: clwq1k2z90000v3l5b8k3z9k1
+ *                     fullname:
+ *                       type: string
+ *                       example: Danniel
+ *                     email:
+ *                       type: string
+ *                       example: Danniel@email.com
+ *                     imgUrl:
+ *                       type: string
+ *                       example: https://example.com/avatar.jpg
+ *                     faculty:
+ *                       type: string
+ *                       example: Ilmu Komputer
+ *                     batch:
+ *                       type: integer
+ *                       example: 2023
+ *       400:
+ *         description: Validasi gagal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Validasi gagal
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: email
+ *                       message:
+ *                         type: string
+ *                         example: Tolong masukan email yang sesuai
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+ *       409:
+ *         description: Email sudah digunakan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Email sudah digunakan
+ *                 error:
+ *                   type: string
+ *                   example: DUPLICATE_EMAIL
+ *                 status:
+ *                   type: integer
+ *                   example: 409
+ *       500:
+ *         description: Terjadi kesalahan internal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Terjadi kesalahan internal
+ *                 error:
+ *                   type: string
+ *                   example: Unknown error
+ *                 status:
+ *                   type: integer
+ *                   example: 500
+ */
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as Prisma.UserCreateInput;
+  const body = (await req.json());
+
   await prisma.$connect();
-  body["password"] = await hash(body["password"], 10);
-  const user = await prisma.user.create({ data: body });
-  await prisma.$disconnect();
-  return new Response(
-    JSON.stringify({
-      ...user,
-    }),
-    {
-      status: 201,
-      headers: {
-        "Content-Type": "application/json",
-      },
+  try {
+    const validateData = UserSchema.parse(body);
+    validateData["password"] = await hash(body["password"], 10);
+
+    const user = await prisma.user.create({data: validateData});
+    
+    const {password, ...responseData} = user;
+
+    await prisma.$disconnect();
+
+    return serverResponse({success: true, message: "Berhasil membuat akun", data: responseData})
+
+  } catch (error) {
+    await prisma.$disconnect();
+
+    if (error instanceof ZodError) {
+      const zodErrors: ValidationError[] = error.errors.map((issue) => ({
+        field: issue.path[0]?.toString() || "unknown",
+        message: issue.message,
+      }));
+
+      return serverResponse({
+        success: false,
+        message: "Validasi gagal",
+        error: zodErrors,
+        status: 400,
+      });
     }
-  );
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return serverResponse({
+          success: false,
+          message: "Email sudah digunakan",
+          error: "DUPLICATE_EMAIL",
+          status: 409,
+        });
+      }
+    }
+
+    return serverResponse({
+      success: false,
+      message: "Terjadi kesalahan internal",
+      error: error instanceof Error ? error.message : "Unknown error",
+      status: 500,
+    });
+  }
 }

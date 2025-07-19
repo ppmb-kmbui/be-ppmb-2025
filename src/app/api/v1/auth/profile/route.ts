@@ -1,22 +1,111 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import * as jwt from "jose";
+import serverResponse, { InvalidUserResponse } from "@/utils/serverResponse";
+/**
+ * @swagger
+ * /api/v1/auth/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags:
+ *       - Auth
+ *     description: |
+ *       Endpoint ini dapat menggunakan JWT token pada header Authorization (format: Bearer &lt;token&gt;) **atau** langsung menggunakan header X-User-Id. Jika menggunakan JWT, token akan didecode untuk mendapatkan userId. Jika menggunakan X-User-Id, userId akan diambil langsung dari header.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: X-User-Id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: User ID (opsional, bisa diisi manual jika tidak menggunakan JWT)
+ *     responses:
+ *       200:
+ *         description: Profile berhasil didapatkan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Profile berhasil didapatkan
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     email:
+ *                       type: string
+ *                       example: danniel@email.com
+ *                     name:
+ *                       type: string
+ *                       example: Danniel
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       404:
+ *         description: User tidak ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Invalid
+ *                 error:
+ *                   type: string
+ *                   example: User tidak ditemukan
+ *                 status:
+ *                   type: integer
+ *                   example: 404
+ */
 
 export async function GET(req: NextRequest) {
+
+  const token = req.headers.get("Authorization")?.split(" ")[1];  
+  try {
+    const { payload } = await jwt.jwtVerify(
+      token!,
+      new TextEncoder().encode(process.env.JWT_SECRET),
+      {}
+    );
+    let headers = new Headers(req.headers);
+    if (payload) {
+      headers.set("X-User-Id", payload.sub!.toString());
+      headers.set("X-User-Admin", payload.isAdmin! as string);
+    }
+  } catch (error) {
+    // Just Pass
+  }
+
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidUserResponse;
   }
   await prisma.$connect();
-  const user = await prisma.user.findUnique({
-    where: {
-      id: +userId,
-    },
-  });
-  await prisma.$disconnect();
-  const { password, ...profile } = user!;
-  return new Response(JSON.stringify(profile), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: +userId,
+      },
+    });
+    await prisma.$disconnect();
+    const { password, ...profile } = user!;
+    return serverResponse({success: true, message: "Profile berhasil didapatkan", data: profile});
+
+  } catch (error) {
+    await prisma.$disconnect();
+    return InvalidUserResponse;
+  } 
 }
