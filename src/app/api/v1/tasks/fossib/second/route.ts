@@ -1,15 +1,16 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
 
   await prisma.$connect();
 
-  const sub = await prisma.secondFossibSessionSubmission.findMany({
+  const secondFossibSessionSubmission = await prisma.secondFossibSessionSubmission.findFirst({
     where: {
       userId: +userId,
     },
@@ -17,27 +18,38 @@ export async function GET(req: NextRequest) {
 
   await prisma.$disconnect();
 
-  return new Response(
-    JSON.stringify({
-      data: sub[0],
-    }),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  return serverResponse({
+    success: true,
+    message: "Berhasil mendapatkan data submisi Fossib kedua",
+    data: secondFossibSessionSubmission
+  });
+}
+
+interface SecondFossibSessionSubmissionDto {
+  file_url: string;
+  description: string;
 }
 
 export async function POST(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
 
-  const body = await req.json();
-  if (!body) {
-    return new Response("Bad Request", { status: 400 });
+  let body;
+  try {
+    body = (await req.json()) as SecondFossibSessionSubmissionDto;
+  } catch (error) {
+    return serverResponse({
+      success: false,
+      message: "Operasi gagal",
+      error: "Body tidak valid atau kosong",
+      status: 400
+    });
+  }
+
+  if (!body.file_url || !body.description) {
+    return serverResponse({success: false, message: "Operasi gagal", error: "Body tidak lengkap", status: 400})
   }
 
   await prisma.$connect();
@@ -58,14 +70,15 @@ export async function POST(req: NextRequest) {
 
     await prisma.$disconnect();
 
-    return new Response(JSON.stringify(sub), {
-      headers: {
-        "Content-Type": "application/json",
-      },
+    return serverResponse({
+      success: true,
+      message: "Berhasil mengupdate submisi Fossib kedua",
+      data: sub,
+      status: 200
     });
   }
 
-  const sub = await prisma.secondFossibSessionSubmission.create({
+  const secondFossibSessionSubmission = await prisma.secondFossibSessionSubmission.create({
     data: {
       userId: +userId,
       ...body,
@@ -74,9 +87,10 @@ export async function POST(req: NextRequest) {
 
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify(sub), {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  return serverResponse({
+    success: true,
+    message: "Berhasil membuat submisi Fossib kedua",
+    data: secondFossibSessionSubmission,
+    status: 200
   });
 }

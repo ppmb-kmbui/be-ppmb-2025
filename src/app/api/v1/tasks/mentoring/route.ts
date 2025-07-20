@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
   await prisma.$connect();
   const reflection = await prisma.mentoringReflection.findFirst({
@@ -15,8 +16,6 @@ export async function GET(req: NextRequest) {
   });
   await prisma.$disconnect();
 
-  return new Response(JSON.stringify({ reflection, vlog }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  // Use serverResponse to format the response
+  return serverResponse({success: true, message: "Berhasil mengambil data kamu", data: { reflection, vlog, status: 200}});
 }
