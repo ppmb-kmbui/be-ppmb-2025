@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 export const maxDuration = 60;
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -113,19 +114,23 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     },
   });
 
-  const networkingKating = await prisma.connectSubmission.findMany({
+  const networkingKating = await prisma.networkingKatingTask.findMany({
     where: {
-      userId: userId,
+      fromId: userId,
     },
     orderBy: {
-      batch: "desc",
+      to: {
+        batch: "desc",
+      }
     },
   });
 
   await prisma.$disconnect();
 
-  return new Response(
-    JSON.stringify({
+  return serverResponse({
+    success: true,
+    message: `Berhasil mengambil data user ${userId}`,
+    data: {
       networkingTask,
       firstFossibTask,
       secondFossibTask,
@@ -134,11 +139,6 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       mentoringReflectionTask,
       mentoringVlogTask,
       networkingKating,
-    }),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
     }
-  );
+  })
 }

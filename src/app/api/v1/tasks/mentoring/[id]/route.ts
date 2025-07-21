@@ -1,74 +1,100 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+  if (!userId || !params.id) {
+    return InvalidHeadersResponse;
   }
-  if (!params.id) {
-    return new Response("Bad Request", { status: 400 });
-  }
-  const body = await req.json();
+
+  let body = await req.json();
   await prisma.$connect();
   if (params.id === "vlog") {
+    try {
+      body = body as {file_url: string};
+    } catch {
+      return serverResponse({
+        success: false,
+        message: "Operasi gagal",
+        error: "Body tidak valid atau kosong",
+        status: 400
+      });
+    }
     const exist = await prisma.mentoringVlogSubmission.findFirst({
       where: { userId: +userId },
     });
     if (exist) {
-      const sub = await prisma.mentoringVlogSubmission.updateMany({
-        where: { userId: +userId },
+      const mentoringVlogSubmission = await prisma.mentoringVlogSubmission.updateMany({
+        where: { id: exist.id },
         data: {
           ...body,
         },
       });
       await prisma.$disconnect();
-      return new Response(JSON.stringify(sub), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return serverResponse({success: true, message: "Berhasil submit vlog kamu", data: mentoringVlogSubmission, status: 200});
     }
-    const sub = await prisma.mentoringVlogSubmission.create({
+    const mentoringVlogSubmission = await prisma.mentoringVlogSubmission.create({
       data: {
         ...body,
         userId: +userId,
       },
     });
     await prisma.$disconnect();
-    return new Response(JSON.stringify(sub), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return serverResponse({
+      success: true,
+      message: "Berhasil submit refleksi kamu",
+      data: mentoringVlogSubmission,
+      status: 200
     });
   }
 
   if (params.id === "reflection") {
+    try {
+      body = body as {file_url: string, description: string};
+    } catch {
+      return serverResponse({
+        success: false,
+        message: "Operasi gagal",
+        error: "Body tidak valid atau kosong",
+        status: 400
+      });
+    }
+
     const exist = await prisma.mentoringReflection.findFirst({
       where: { userId: +userId },
     });
+
     if (exist) {
-      const sub = await prisma.mentoringReflection.updateMany({
-        where: { userId: +userId },
+      const mentoringReflectionSubmission = await prisma.mentoringReflection.update({
+        where: { id: exist.id },
         data: {
           ...body,
         },
       });
       await prisma.$disconnect();
-      return new Response(JSON.stringify(sub), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+
+      return serverResponse({
+        success: true,
+        message: "Berhasil submit refleksi kamu",
+        data: mentoringReflectionSubmission,
+        status: 200
       });
     }
-    const sub = await prisma.mentoringReflection.create({
+
+    const mentoringReflectionSubmission = await prisma.mentoringReflection.create({
       data: {
         ...body,
         userId: +userId,
       },
     });
     await prisma.$disconnect();
-    return new Response(JSON.stringify(sub), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return serverResponse({
+      success: true,
+      message: "Berhasil submit refleksi kamu",
+      data: mentoringReflectionSubmission,
+      status: 200
     });
   }
 

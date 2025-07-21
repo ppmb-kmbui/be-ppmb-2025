@@ -1,69 +1,76 @@
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
   await prisma.$connect();
-  const sub = await prisma.firstFossibSessionSubmission.findMany({
+  const firstFossibSessionSubmission = await prisma.firstFossibSessionSubmission.findFirst({
     where: {
       userId: +userId,
     },
   });
+
   await prisma.$disconnect();
-  return new Response(
-    JSON.stringify({
-      data: sub[0],
-    }),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  return serverResponse({success: true, message: "Berhasil mendapatkan data submisi Fossib pertama", data: firstFossibSessionSubmission})
+}
+
+interface firstFossibSessionSubmissionDto {
+  file_url: string,
+  description: string
 }
 
 export async function POST(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
-  const body = await req.json();
-  if (!body) {
-    return new Response("Bad Request", { status: 400 });
+
+  let body;
+  try {
+    body = (await req.json()) as firstFossibSessionSubmissionDto;
+  } catch (error) {
+    return serverResponse({
+      success: false,
+      message: "Operasi gagal",
+      error: "Body tidak lengkap. Template yang dibutuhkan: { file_url: string, description: string }",
+      status: 400
+    })
   }
+
+  if (!body.file_url || !body.description) {
+    return serverResponse({success: false, message: "Operasi gagal", error: "Body tidak lengkap", status: 400})
+  }
+  
   await prisma.$connect();
   const check = await prisma.firstFossibSessionSubmission.findFirst({
     where: {
       userId: +userId,
     },
   });
+
   if (check) {
-    const sub = await prisma.firstFossibSessionSubmission.update({
+    const firstFossibSessionSubmission = await prisma.firstFossibSessionSubmission.update({
       where: {
         id: check.id,
       },
-      data: body,
+      data: body
     });
+
     await prisma.$disconnect();
-    return new Response(JSON.stringify(sub), {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+
+    return serverResponse({ success: true, message: "Berhasil mengupdate submisi Fossib pertama", data: firstFossibSessionSubmission, status: 200 });
   }
-  const sub = await prisma.firstFossibSessionSubmission.create({
+
+  const firstFossibSessionSubmission = await prisma.firstFossibSessionSubmission.create({
     data: {
       userId: +userId,
       ...body,
     },
   });
   await prisma.$disconnect();
-  return new Response(JSON.stringify(sub), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return serverResponse({ success: true, message: "Berhasil membuat submisi Fossib pertama", data: firstFossibSessionSubmission, status: 200 });
 }

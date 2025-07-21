@@ -1,14 +1,17 @@
 import { CLUSTERS } from "@/lib/const";
 import { prisma } from "@/lib/prisma";
+import serverResponse, { InvalidHeadersResponse } from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("X-User-Id");
+
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return InvalidHeadersResponse;
   }
-  console.log(userId);
+
   await prisma.$connect();
+
   const networkingAngkatan = await prisma.networkingTask.findMany({
     where: {
       is_done: true,
@@ -29,33 +32,44 @@ export async function GET(req: NextRequest) {
     RIK_VOK: { progress: 0, min: 3 },
     OTHER: { progress: 0, min: 3 },
   };
+
   for (const angkatan of networkingAngkatan) {
     const faculty = angkatan.to.faculty;
+
     if (CLUSTERS["SAINTEK"].includes(faculty!.toUpperCase())) {
       progressMap.SAINTEK = {
         progress: progressMap.SAINTEK.progress + 1,
         min: 3,
       };
     }
+
     if (CLUSTERS["SOSHUM"].includes(faculty!.toUpperCase())) {
       progressMap.SOSHUM = {
         progress: progressMap.SOSHUM.progress + 1,
         min: 3,
       };
     }
+
     if (CLUSTERS["RIK_VOK"].includes(faculty!.toUpperCase())) {
       progressMap.RIK_VOK = {
         progress: progressMap.RIK_VOK.progress + 1,
         min: 3,
       };
     }
+
   }
 
-  const networkingKating = await prisma.connectSubmission.groupBy({
-    by: ["batch"],
-    _count: true,
+  const networkingKating = await prisma.networkingKatingTask.findMany({
     where: {
-      userId: +userId,
+      is_done: true,
+      fromId: +userId,
+    },
+    select: {
+      to: {
+        select: {
+          batch: true,
+        },
+      },
     },
   });
 
@@ -65,23 +79,14 @@ export async function GET(req: NextRequest) {
     "2021": { progres: 0, min: 1 },
   };
   for (const kating of networkingKating) {
-    if (kating.batch === 2023) {
-      progressKatingMap["2023"] = {
-        progres: kating._count,
-        min: 6,
-      };
+    if (kating.to.batch === 2023) {
+      progressKatingMap["2023"].progres++;
     }
-    if (kating.batch === 2022) {
-      progressKatingMap["2022"] = {
-        progres: kating._count,
-        min: 3,
-      };
+    if (kating.to.batch === 2022) {
+      progressKatingMap["2022"].progres++;
     }
-    if (kating.batch === 2021) {
-      progressKatingMap["2021"] = {
-        progres: kating._count,
-        min: 1,
-      };
+    if (kating.to.batch === 2021) {
+      progressKatingMap["2021"].progres++;
     }
   }
 
@@ -90,21 +95,25 @@ export async function GET(req: NextRequest) {
       userId: +userId,
     },
   });
+
   const fossib2 = await prisma.secondFossibSessionSubmission.findFirst({
     where: {
       userId: +userId,
     },
   });
+
   const insightHunting = await prisma.insightHuntingSubmission.findFirst({
     where: {
       userId: +userId,
     },
   });
+
   const mentoringReflection = await prisma.mentoringReflection.findFirst({
     where: {
       userId: +userId,
     },
   });
+
   const mentoringVlog = await prisma.mentoringVlogSubmission.findFirst({
     where: {
       userId: +userId,
@@ -119,32 +128,18 @@ export async function GET(req: NextRequest) {
 
   await prisma.$disconnect();
 
-  const res = JSON.stringify({
-    networkingAngkatan: { progress: progressMap, min: 20 },
-    networkingKating: progressKatingMap,
-    kmbuiExplorerDone: !!exp,
-    firstFossibDone: !!fossib1,
-    secondFossibDone: !!fossib2,
-    insightHuntingDone: !!insightHunting,
-    mentoringReflectionDone: !!mentoringReflection,
-    mentoringVlogDone: !!mentoringVlog,
-  });
-
-  return new Response(
-    JSON.stringify({
+  return serverResponse({
+    success: true,
+    message: "Berhasil mendapatkan tasks user",
+    data: {
       networkingAngkatan: { progress: progressMap, min: 20 },
-      networkingKating: progressKatingMap,
+      networkingKating: { progress: progressKatingMap, min: 10 },
       kmbuiExplorerDone: !!exp,
       firstFossibDone: !!fossib1,
       secondFossibDone: !!fossib2,
       insightHuntingDone: !!insightHunting,
       mentoringReflectionDone: !!mentoringReflection,
       mentoringVlogDone: !!mentoringVlog,
-    }),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
     }
-  );
+  });
 }
