@@ -37,8 +37,17 @@ model User {
   MentoringVlogSubmission       MentoringVlogSubmission[]
   MentoringReflection           MentoringReflection[]
   NetworkingScore               NetworkingScore[]
+  passwordResetTokens           PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model NetworkingScore {
