@@ -37,6 +37,15 @@ model User {
   @@map("users")
 }
 
+model NetworkingScore {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+  score  Int
+
+  @@map("networking_scores")
+}
+
 model Connection {
   id         Int      @id @default(autoincrement())
   from       User     @relation(fields: [fromId], references: [id], name: "from")
