@@ -37,15 +37,6 @@ model User {
   @@map("users")
 }
 
-model NetworkingScore {
-  id     Int  @id @default(autoincrement())
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @map("user_id")
-  score  Int
-
-  @@map("networking_scores")
-}
-
 model Connection {
   id         Int      @id @default(autoincrement())
   from       User     @relation(fields: [fromId], references: [id], name: "from")
@@ -102,8 +93,6 @@ model NetworkingTask {
   img_url   String?
   questions QuestionTask[]
   is_done   Boolean        @default(false) @map("is_done")
-  score     Int            @default(0) 
-
   @@id([fromId, toId])
 }
 
@@ -137,7 +126,6 @@ model NetworkingKatingTask {
   img_url   String?
   questions QuestionKatingTask[]
   is_done   Boolean        @default(false) @map("is_done")
-  score     Int            @default(0) 
 
   @@id([fromId, toId])
 }
