@@ -2,6 +2,101 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/utils/serverResponse";
 
+export async function GET(req: NextRequest) {
+  const userId = req.headers.get("X-User-Id");
+  if (!userId) {
+    return InvalidHeadersResponse;
+  }
+  await prisma.$connect();
+  const user = await prisma.user.findUnique({
+    where: {
+      id: +userId,
+    },
+    include: {
+      _count: {
+        select: {
+          ConnectionReciever: true,
+        },
+      },
+      NetworkingTaskSender: {
+        where: {
+          fromId: +userId,
+          is_done: true,
+        },
+        include: {
+          questions: {
+            include: {
+              question: true,
+            },
+          },
+          to: {
+            omit: {
+              password: true,
+            },
+          },
+        },
+      },
+    },
+    omit: {
+      password: true,
+    },
+  });
+  await prisma.$disconnect();
+
+  if (!user) {
+    return InvalidUserResponse;
+  }
+
+  const { NetworkingTaskSender, _count, ...rest } = user;
+
+  return serverResponse({
+    success: true,
+    message: "Berhasil mengambil profil",
+    data: {
+      ...rest,
+      followers: _count.ConnectionReciever,
+      networking_tasks: NetworkingTaskSender,
+    },
+    status: 200,
+  });
+}
+
+export async function PUT(req: NextRequest) {
+  const userId = req.headers.get("X-User-Id");
+  if (!userId) {
+    return InvalidHeadersResponse;
+  }
+  const body = await req.json();
+  if (!body.imgUrl) {
+    return serverResponse({
+      success: false,
+      message: "Gagal memperbarui profil",
+      error: "imgUrl wajib diisi",
+      status: 400,
+    });
+  }
+  await prisma.$connect();
+  const user = await prisma.user.update({
+    where: {
+      id: +userId,
+    },
+    data: {
+      imgUrl: body.imgUrl,
+    },
+    omit: {
+      password: true,
+    },
+  });
+  await prisma.$disconnect();
+
+  return serverResponse({
+    success: true,
+    message: "Berhasil memperbarui profil",
+    data: user,
+    status: 200,
+  });
+}
+
 /**
  * @swagger
  * /api/v1/profile:
@@ -218,98 +313,3 @@ import serverResponse, { InvalidHeadersResponse, InvalidUserResponse } from "@/u
  *                   type: string
  *                   example: imgUrl wajib
  */
-
-export async function GET(req: NextRequest) {
-  const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return InvalidHeadersResponse;
-  }
-  await prisma.$connect();
-  const user = await prisma.user.findUnique({
-    where: {
-      id: +userId,
-    },
-    include: {
-      _count: {
-        select: {
-          ConnectionReciever: true,
-        },
-      },
-      NetworkingTaskSender: {
-        where: {
-          fromId: +userId,
-          is_done: true,
-        },
-        include: {
-          questions: {
-            include: {
-              question: true,
-            },
-          },
-          to: {
-            omit: {
-              password: true,
-            },
-          },
-        },
-      },
-    },
-    omit: {
-      password: true,
-    },
-  });
-  await prisma.$disconnect();
-
-  if (!user) {
-    return InvalidUserResponse;
-  }
-
-  const { NetworkingTaskSender, _count, ...rest } = user;
-
-  return serverResponse({
-    success: true,
-    message: "Berhasil mengambil profil",
-    data: {
-      ...rest,
-      followers: _count.ConnectionReciever,
-      networking_tasks: NetworkingTaskSender,
-    },
-    status: 200,
-  });
-}
-
-export async function PUT(req: NextRequest) {
-  const userId = req.headers.get("X-User-Id");
-  if (!userId) {
-    return InvalidHeadersResponse;
-  }
-  const body = await req.json();
-  if (!body.imgUrl) {
-    return serverResponse({
-      success: false,
-      message: "Gagal memperbarui profil",
-      error: "imgUrl wajib diisi",
-      status: 400,
-    });
-  }
-  await prisma.$connect();
-  const user = await prisma.user.update({
-    where: {
-      id: +userId,
-    },
-    data: {
-      imgUrl: body.imgUrl,
-    },
-    omit: {
-      password: true,
-    },
-  });
-  await prisma.$disconnect();
-
-  return serverResponse({
-    success: true,
-    message: "Berhasil memperbarui profil",
-    data: user,
-    status: 200,
-  });
-}

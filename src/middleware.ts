@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
       },
     });
   } catch (e) {
-    return serverResponse({success: false, message: "Tidak diizinkan", error: "JWT Token tidak valid"})
+    return serverResponse({success: false, message: "Tidak diizinkan", error: "JWT Token tidak valid", status: 401})
   }
 }
 

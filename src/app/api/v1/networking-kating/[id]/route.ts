@@ -57,6 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             success: false,
             message: "Operasi gagal",
             error: "Request body tidak valid",
+            status: 400
         });
     }
 
@@ -71,7 +72,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             success: false,
             message: "Operasi gagal",
             error: "Request body tidak lengkap",
-            data: { template }
+            data: { template },
+            status: 400
+
         });
     }
 
@@ -80,7 +83,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             success: false,
             message: "Operasi gagal",
             error: "Banyak pertanyaan seharusnya 7",
-            data: { template }
+            data: { template },
+            status: 400
         });
     }
 
@@ -98,7 +102,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         return serverResponse({
             success: false,
             message: "Operasi gagal",
-            error: "Kating tidak ditemukan"
+            error: "Kating tidak ditemukan",
+            status: 400
         });
     }
     
