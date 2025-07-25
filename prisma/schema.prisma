@@ -22,7 +22,6 @@ model User {
   NetworkingTaskSender          NetworkingTask[]                @relation("from")
   NetworkingTaskReciever        NetworkingTask[]                @relation("to")
   NetworkingKatingTaskSender    NetworkingKatingTask[]          @relation("from")
-  NetworkingKatingTaskReceiver  NetworkingKatingTask[]          @relation("to")
   ConnectionRequestSender       ConnectionRequest[]             @relation("from")
   ConnectionRequestReciever     ConnectionRequest[]             @relation("to")
   ConnectionSender              Connection[]                    @relation("from")
@@ -35,6 +34,14 @@ model User {
   MentoringVlogSubmission       MentoringVlogSubmission[]
   MentoringReflection           MentoringReflection[]
   @@map("users")
+}
+
+model SeniorUser {
+  id                            Int                             @id @default(autoincrement())
+  fullname                      String?
+  batch                         Int
+  NetworkingKatingTaskReceiver  NetworkingKatingTask[]          @relation("to")
+  @@map("senior_users")
 }
 
 model Connection {
@@ -121,11 +128,10 @@ model QuestionKatingTask {
 model NetworkingKatingTask {
   from      User           @relation(fields: [fromId], references: [id], name: "from")
   fromId    Int            @map("from_id")
-  to        User           @relation(fields: [toId], references: [id], name: "to")
+  to        SeniorUser     @relation(fields: [toId], references: [id], name: "to")
   toId      Int            @map("to_id")
   img_url   String?
   questions QuestionKatingTask[]
-  is_done   Boolean        @default(false) @map("is_done")
 
   @@id([fromId, toId])
 }
