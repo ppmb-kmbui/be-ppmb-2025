@@ -124,151 +124,151 @@ export async function POST(req: NextRequest, { params }: {params: Promise<{id: s
     return serverResponse({success: true, message: "Networking kating berhasil dibuat", data: newNetworkingKating, status: 200});
 }
 
-interface SubmitAnswerNetworkingKatingTaskDto {
-    img_url: string,
-    answers: {
-        answer: string
-    } [],
-    optionalAnswes: {
-        question: string,
-        answer: string
-    }
-}
+// interface SubmitAnswerNetworkingKatingTaskDto {
+//     img_url: string,
+//     answers: {
+//         answer: string
+//     } [],
+//     optionalAnswes: {
+//         question: string,
+//         answer: string
+//     }
+// }
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{id: string}>}) {
-    const userId = req.headers.get('X-User-Id');
-    const targetId = (await params).id;
+// export async function PUT(req: NextRequest, { params }: { params: Promise<{id: string}>}) {
+//     const userId = req.headers.get('X-User-Id');
+//     const targetId = (await params).id;
 
-    const body = (await req.json()) as SubmitAnswerNetworkingKatingTaskDto;
+//     const body = (await req.json()) as SubmitAnswerNetworkingKatingTaskDto;
         
-    if (!body.img_url || !body.answers || !body.optionalAnswes) {
-        return serverResponse({
-            success: false, 
-            message: "Operasi gagal", 
-            error: "Request body tidak lengkap", 
-            data: {
-                template: {
-                    img_url: "string",
-                    answers: [
-                        { 
-                            answer: "string" 
-                        }
-                    ],
-                    optionalAnswes: {
-                        question: "string",
-                        answer: "string"
-                    }
-                }
-            },
-        });
-    }
+//     if (!body.img_url || !body.answers || !body.optionalAnswes) {
+//         return serverResponse({
+//             success: false, 
+//             message: "Operasi gagal", 
+//             error: "Request body tidak lengkap", 
+//             data: {
+//                 template: {
+//                     img_url: "string",
+//                     answers: [
+//                         { 
+//                             answer: "string" 
+//                         }
+//                     ],
+//                     optionalAnswes: {
+//                         question: "string",
+//                         answer: "string"
+//                     }
+//                 }
+//             },
+//         });
+//     }
     
-    if (body.answers.length !== 7) {
-        return serverResponse({success: false, message: "Operasi gagal", error: "Banyak pertanyaan seharusnya 7"});
-    }
+//     if (body.answers.length !== 7) {
+//         return serverResponse({success: false, message: "Operasi gagal", error: "Banyak pertanyaan seharusnya 7"});
+//     }
 
-    await prisma.$connect;
+//     await prisma.$connect;
 
-    const response = await checkUser(userId, targetId);
-    if (response !== null) return response;
+//     const response = await checkUser(userId, targetId);
+//     if (response !== null) return response;
 
-    const networkingKating = await prisma.networkingKatingTask.findFirst({
-        where: {
-            fromId: +userId!,
-            toId: +targetId
-        },
-        include: {
-            questions: true
-        }
-    });
+//     const networkingKating = await prisma.networkingKatingTask.findFirst({
+//         where: {
+//             fromId: +userId!,
+//             toId: +targetId
+//         },
+//         include: {
+//             questions: true
+//         }
+//     });
     
-    if (!networkingKating) {
-        await prisma.$disconnect;
-        return serverResponse({success: false, message: "Operasi gagal", error: "Anda belum mengambil pertanyaan dari kating ini", status: 400});
-    }
+//     if (!networkingKating) {
+//         await prisma.$disconnect;
+//         return serverResponse({success: false, message: "Operasi gagal", error: "Anda belum mengambil pertanyaan dari kating ini", status: 400});
+//     }
 
-    const newQuestion = await prisma.questionKating.create({
-        data: {
-            question: body.optionalAnswes.question,
-            group_id: -1
-        }
-    });
+//     const newQuestion = await prisma.questionKating.create({
+//         data: {
+//             question: body.optionalAnswes.question,
+//             group_id: -1
+//         }
+//     });
 
-    await prisma.questionKatingTask.create({
-        data: {
-            fromId: +userId!,
-            toId: +targetId,
-            questionId: newQuestion.id,
-            answer: body.optionalAnswes.answer
-        }
-    });
+//     await prisma.questionKatingTask.create({
+//         data: {
+//             fromId: +userId!,
+//             toId: +targetId,
+//             questionId: newQuestion.id,
+//             answer: body.optionalAnswes.answer
+//         }
+//     });
 
-    await prisma.$transaction(
-        body.answers.map((answerObj, idx) =>
-            prisma.questionKatingTask.update({
-                where: {
-                    questionId_fromId_toId: {
-                        questionId: idx + 1,
-                        fromId: +userId!,
-                        toId: +targetId,
-                    },
-                },
-                data: {
-                    answer: answerObj.answer,
-                },
-            })
-        )
-    );
+//     await prisma.$transaction(
+//         body.answers.map((answerObj, idx) =>
+//             prisma.questionKatingTask.update({
+//                 where: {
+//                     questionId_fromId_toId: {
+//                         questionId: idx + 1,
+//                         fromId: +userId!,
+//                         toId: +targetId,
+//                     },
+//                 },
+//                 data: {
+//                     answer: answerObj.answer,
+//                 },
+//             })
+//         )
+//     );
 
-    const networkingKatingAnswer = await prisma.networkingKatingTask.update({
-        where: {
-            fromId_toId: {
-                fromId: +userId!,
-                toId: +targetId
-            }
-        },
-        data: {
-            img_url: body.img_url,
-            is_done: true,  
-        }, 
-        include: {
-            to: {
-                omit: {
-                    password: true,
-                },
-            },
-            from: {
-                omit: {
-                    password: true,
-                },
-            },
-            questions: {
-                include: {
-                    question: true,
-                },
-            },
-        },
-    });
+//     const networkingKatingAnswer = await prisma.networkingKatingTask.update({
+//         where: {
+//             fromId_toId: {
+//                 fromId: +userId!,
+//                 toId: +targetId
+//             }
+//         },
+//         data: {
+//             img_url: body.img_url,
+//             is_done: true,  
+//         }, 
+//         include: {
+//             to: {
+//                 omit: {
+//                     password: true,
+//                 },
+//             },
+//             from: {
+//                 omit: {
+//                     password: true,
+//                 },
+//             },
+//             questions: {
+//                 include: {
+//                     question: true,
+//                 },
+//             },
+//         },
+//     });
 
-    await prisma.connection.updateMany({
-        where: {
-            fromId: +userId!,
-            toId: +targetId,
-        },
-        data: {
-            status: "done",
-        },
-    });
+//     await prisma.connection.updateMany({
+//         where: {
+//             fromId: +userId!,
+//             toId: +targetId,
+//         },
+//         data: {
+//             status: "done",
+//         },
+//     });
 
-    await prisma.$disconnect();
+//     await prisma.$disconnect();
 
-    return serverResponse({
-        success: true, 
-        message: "Berhasil submit networking",
-        data: networkingKatingAnswer,
-        status: 200
-    });
-}
+//     return serverResponse({
+//         success: true, 
+//         message: "Berhasil submit networking",
+//         data: networkingKatingAnswer,
+//         status: 200
+//     });
+// }
 
 async function checkUser(userId: string | null, targetId: string | null) {
     if (!userId || !targetId) {
