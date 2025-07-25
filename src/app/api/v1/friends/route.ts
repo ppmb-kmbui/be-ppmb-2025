@@ -161,14 +161,6 @@ export async function GET(req: NextRequest) {
               is_done: true,
             },
           },
-          NetworkingKatingTaskReceiver: {
-            where: {
-              fromId: +userId,
-            },
-            select: {
-              is_done: true,
-            },
-          }
         },
       });
 
@@ -179,13 +171,12 @@ export async function GET(req: NextRequest) {
               ConnectionRequestReciever,
               ConnectionRequestSender,
               NetworkingTaskReciever,
-              NetworkingKatingTaskReceiver,
               createdAt,
               ...rest
             }) => {
               let status = "not_connected";
-              if (NetworkingTaskReciever.length || NetworkingKatingTaskReceiver.length) {
-                status = NetworkingTaskReciever[0].is_done || NetworkingKatingTaskReceiver[0].is_done
+              if (NetworkingTaskReciever.length) {
+                status = NetworkingTaskReciever[0].is_done
                   ? "done"
                   : "sedang_networking";
               } else if (ConnectionReciever.length) {
@@ -269,14 +260,6 @@ export async function GET(req: NextRequest) {
             is_done: true,
           },
         },
-        NetworkingKatingTaskReceiver: {
-            where: {
-              fromId: +userId,
-            },
-            select: {
-              is_done: true,
-            },
-          },
       },
     });
     await prisma.$disconnect();
@@ -288,13 +271,12 @@ export async function GET(req: NextRequest) {
             ConnectionRequestReciever,
             ConnectionRequestSender,
             NetworkingTaskReciever,
-            NetworkingKatingTaskReceiver,
             createdAt,
             ...rest
           }) => {
             let status = "not_connected";
             if (NetworkingTaskReciever.length) {
-              status = NetworkingTaskReciever[0].is_done || NetworkingKatingTaskReceiver[0].is_done
+              status = NetworkingTaskReciever[0].is_done
                 ? "done"
                 : "sedang_networking";
             } else if (ConnectionReciever.length) {

@@ -41,6 +41,7 @@ model SeniorUser {
   fullname                      String?
   batch                         Int
   NetworkingKatingTaskReceiver  NetworkingKatingTask[]          @relation("to")
+  @@map("senior_users")
 }
 
 model Connection {

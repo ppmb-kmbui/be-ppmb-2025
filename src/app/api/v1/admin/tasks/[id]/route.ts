@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { CLUSTERS } from "@/lib/const";
 import serverResponse from "@/utils/serverResponse";
 import { NextRequest } from "next/server";
 export const maxDuration = 60;
@@ -13,115 +14,117 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   }
   const userId = +params.id;
   await prisma.$connect();
-
-  const networkingTask = await prisma.networkingTask.findMany({
+  
+  const networkingAngkatan = await prisma.networkingTask.findMany({
     where: {
-      fromId: userId,
+      is_done: true,
+      fromId: +userId,
     },
-    include: {
-      from: true,
-      to: true,
-      questions: {
-        include: {
-          question: true,
-          task: {
-            select: {
-              score: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const firstFossibTask = await prisma.firstFossibSessionSubmission.findFirst({
-    where: {
-      userId: userId,
-    },
-    include: {
-      FirstFossibSessionScore: {
+    select: {
+      to: {
         select: {
-          score: true,
+          faculty: true,
         },
       },
     },
   });
 
-  const secondFossibTask = await prisma.secondFossibSessionSubmission.findFirst(
-    {
-      where: {
-        userId: userId,
-      },
-      include: {
-        SecondFossibSessionScore: {
-          select: {
-            score: true,
-          },
-        },
-      },
+  const progressMap = {
+    SAINTEK: { progress: 0, min: 3 },
+    SOSHUM: { progress: 0, min: 3 },
+    RIK_VOK: { progress: 0, min: 3 },
+    OTHER: { progress: 0, min: 3 },
+  };
+
+  for (const angkatan of networkingAngkatan) {
+    const faculty = angkatan.to.faculty;
+
+    if (CLUSTERS["SAINTEK"].includes(faculty!.toUpperCase())) {
+      progressMap.SAINTEK = {
+        progress: progressMap.SAINTEK.progress + 1,
+        min: 3,
+      };
     }
-  );
 
-  const insightHuntingTask = await prisma.insightHuntingSubmission.findMany({
-    where: {
-      userId: userId,
-    },
-    include: {
-      InsightHuntingSubmissionScore: {
-        select: {
-          score: true,
-        },
-      },
-    },
-  });
+    if (CLUSTERS["SOSHUM"].includes(faculty!.toUpperCase())) {
+      progressMap.SOSHUM = {
+        progress: progressMap.SOSHUM.progress + 1,
+        min: 3,
+      };
+    }
 
-  const explorerTask = await prisma.explorerSubmission.findMany({
-    where: {
-      userId: userId,
-    },
-    include: {
-      ExplorerSubmissionScore: {
-        select: {
-          score: true,
-        },
-      },
-    },
-  });
+    if (CLUSTERS["RIK_VOK"].includes(faculty!.toUpperCase())) {
+      progressMap.RIK_VOK = {
+        progress: progressMap.RIK_VOK.progress + 1,
+        min: 3,
+      };
+    }
 
-  const mentoringReflectionTask = await prisma.mentoringReflection.findFirst({
-    where: {
-      userId: userId,
-    },
-    include: {
-      MentoringReflectionScore: {
-        select: {
-          score: true,
-        },
-      },
-    },
-  });
-
-  const mentoringVlogTask = await prisma.mentoringVlogSubmission.findFirst({
-    where: {
-      userId: userId,
-    },
-    include: {
-      MentoringVlogSubmissionScore: {
-        select: {
-          score: true,
-        },
-      },
-    },
-  });
+  }
 
   const networkingKating = await prisma.networkingKatingTask.findMany({
     where: {
-      fromId: userId,
+      fromId: +userId,
     },
-    orderBy: {
+    select: {
       to: {
-        batch: "desc",
-      }
+        select: {
+          batch: true,
+        },
+      },
+    },
+  });
+
+  const progressKatingMap = {
+    "2024": { progres: 0, min: 6 },
+    "2023": { progres: 0, min: 3 },
+    "2022": { progres: 0, min: 1 },
+  };
+  for (const kating of networkingKating) {
+    if (kating.to.batch === 2024) {
+      progressKatingMap["2024"].progres++;
+    }
+    if (kating.to.batch === 2023) {
+      progressKatingMap["2023"].progres++;
+    }
+    if (kating.to.batch === 2022) {
+      progressKatingMap["2022"].progres++;
+    }
+  }
+
+  const fossib1 = await prisma.firstFossibSessionSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  const fossib2 = await prisma.secondFossibSessionSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  const insightHunting = await prisma.insightHuntingSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  const mentoringReflection = await prisma.mentoringReflection.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  const mentoringVlog = await prisma.mentoringVlogSubmission.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+
+  const exp = await prisma.explorerSubmission.findFirst({
+    where: {
+      userId: +userId,
     },
   });
 
@@ -129,16 +132,16 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   return serverResponse({
     success: true,
-    message: `Berhasil mengambil data user ${userId}`,
+    message: "Berhasil mendapatkan tasks user",
     data: {
-      networkingTask,
-      firstFossibTask,
-      secondFossibTask,
-      insightHuntingTask,
-      explorerTask,
-      mentoringReflectionTask,
-      mentoringVlogTask,
-      networkingKating,
+      networkingAngkatan: { progress: progressMap, min: 20 },
+      networkingKating: { progress: progressKatingMap, min: 10 },
+      kmbuiExplorerDone: !!exp,
+      firstFossibDone: !!fossib1,
+      secondFossibDone: !!fossib2,
+      insightHuntingDone: !!insightHunting,
+      mentoringReflectionDone: !!mentoringReflection,
+      mentoringVlogDone: !!mentoringVlog,
     }
-  })
+  });
 }
