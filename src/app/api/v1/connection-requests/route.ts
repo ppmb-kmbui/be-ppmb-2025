@@ -176,7 +176,7 @@ export async function GET(req: NextRequest) {
     return serverResponse({success: true, message: "Succesfully retrieved all connection request", data: {received: connection_requests_recieved, sent: connection_requests_sent}, status: 200});
     
   } catch (error) {
-    await prisma.$disconnect;
+    await prisma.$disconnect();
     return InvalidUserResponse;
   }
 }

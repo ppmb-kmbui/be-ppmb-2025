@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
     return InvalidHeadersResponse;
   }
   const searchParams = req.nextUrl.searchParams;
-  await prisma.$connect;
+  await prisma.$connect();
   if (!searchParams.get("name")) {
     try{
       const friends = await prisma.user.findMany({
@@ -295,6 +295,7 @@ export async function GET(req: NextRequest) {
       };
     return serverResponse({success: true, message: `Friends Succesfully retrieved with name ${name}`, data: friends_response ,status: 200})
   } catch {
+    await prisma.$disconnect();
     return InvalidUserResponse;
   }
 }
