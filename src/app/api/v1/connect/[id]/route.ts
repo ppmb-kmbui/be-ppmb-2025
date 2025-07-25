@@ -130,7 +130,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     return InvalidHeadersResponse;
   }
 
-  await prisma.$connect;
+  await prisma.$connect();
   const user = await prisma.user.findUnique({
     where: { id: +userId }
   });
@@ -198,7 +198,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     return InvalidHeadersResponse;
   }
 
-  await prisma.$connect;
+  await prisma.$connect();
   const user = await prisma.user.findUnique({
     where: { id: +userId }
   });
@@ -275,7 +275,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     return InvalidHeadersResponse;
   }
 
-  await prisma.$connect;
+  await prisma.$connect();
   const user = await prisma.user.findUnique({
     where: { id: +userId }
   });
