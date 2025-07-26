@@ -76,19 +76,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   });
 
   const progressKatingMap = {
-    "2024": { progres: 0, min: 6 },
-    "2023": { progres: 0, min: 3 },
-    "2022": { progres: 0, min: 1 },
+    "2024": { progress: 0, min: 6 },
+    "2023": { progress: 0, min: 3 },
+    "2022": { progress: 0, min: 1 },
   };
   for (const kating of networkingKating) {
     if (kating.to.batch === 2024) {
-      progressKatingMap["2024"].progres++;
+      progressKatingMap["2024"].progress++;
     }
     if (kating.to.batch === 2023) {
-      progressKatingMap["2023"].progres++;
+      progressKatingMap["2023"].progress++;
     }
     if (kating.to.batch === 2022) {
-      progressKatingMap["2022"].progres++;
+      progressKatingMap["2022"].progress++;
     }
   }
 
