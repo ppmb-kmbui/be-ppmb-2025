@@ -15,5 +15,3 @@ if (process.env.NODE_ENV !== "production") {
 process.on('beforeExit', async () => {
   await prisma.$disconnect();
 });
-
-console.log("RUN")
