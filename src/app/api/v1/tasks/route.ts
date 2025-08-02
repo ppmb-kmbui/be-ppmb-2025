@@ -56,7 +56,6 @@ export async function GET(req: NextRequest) {
         min: 3,
       };
     }
-
   }
 
   const networkingKating = await prisma.networkingKatingTask.findMany({
@@ -73,10 +72,11 @@ export async function GET(req: NextRequest) {
   });
 
   const progressKatingMap = {
-    "2024": { progress: 0, min: 6 },
+    "2024": { progress: 0, min: 4 },
     "2023": { progress: 0, min: 3 },
-    "2022": { progress: 0, min: 1 },
+    "2022": { progress: 0, min: 3 },
   };
+
   for (const kating of networkingKating) {
     if (kating.to.batch === 2024) {
       progressKatingMap["2024"].progress++;
@@ -95,19 +95,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const fossib2 = await prisma.secondFossibSessionSubmission.findFirst({
-    where: {
-      userId: +userId,
-    },
-  });
-
   const insightHunting = await prisma.insightHuntingSubmission.findFirst({
-    where: {
-      userId: +userId,
-    },
-  });
-
-  const mentoringReflection = await prisma.mentoringReflection.findFirst({
     where: {
       userId: +userId,
     },
@@ -131,14 +119,12 @@ export async function GET(req: NextRequest) {
     success: true,
     message: "Berhasil mendapatkan tasks user",
     data: {
-      networkingAngkatan: { progress: progressMap, min: 20 },
+      networkingAngkatan: { progress: progressMap, min: 10 },
       networkingKating: { progress: progressKatingMap, min: 10 },
       kmbuiExplorerDone: !!exp,
       firstFossibDone: !!fossib1,
-      secondFossibDone: !!fossib2,
       insightHuntingDone: !!insightHunting,
-      mentoringReflectionDone: !!mentoringReflection,
       mentoringVlogDone: !!mentoringVlog,
-    }
+    },
   });
 }
