@@ -5,6 +5,7 @@ import serverResponse from "./utils/serverResponse";
 const allowedOrigins: string[] = [
   "https://ppmbkmbui.com",
   "https://www.ppmbkmbui.com",
+  "http://localhost:3000",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -16,8 +17,19 @@ export async function middleware(req: NextRequest) {
   if (isPreflight) {
     const preflightHeaders = {
       ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),
+      "Access-Control-Allow-Methods": "GET,DELETE,PATCH,POST,PUT",
+      "Access-Control-Allow-Headers":
+        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+      "Access-Control-Allow-Credentials": "true",
     };
     return NextResponse.json({}, { headers: preflightHeaders });
+  }
+
+  const url = new URL(req.url);
+  let headers = new Headers(req.headers);
+
+  if (url.pathname.startsWith("/api/v1/auth/")) {
+    return NextResponse.next({ request: { headers } });
   }
 
   const token = req.headers.get("Authorization")?.split(" ")[1];
@@ -27,7 +39,6 @@ export async function middleware(req: NextRequest) {
       new TextEncoder().encode(process.env.JWT_SECRET),
       {},
     );
-    let headers = new Headers(req.headers);
     if (payload) {
       headers.set("X-User-Id", payload.sub!.toString());
       headers.set("X-User-Admin", payload.isAdmin! as string);
@@ -49,5 +60,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // matcher: ['/((?!api/v1/auth/|api-doc).*)'],
-  matcher: ["/api/v1((?!/auth).*)"],
+  matcher: ["/api/:path*"],
 };
