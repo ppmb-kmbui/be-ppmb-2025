@@ -2,9 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import * as jwt from "jose";
 import serverResponse from "./utils/serverResponse";
 
+const allowedOrigins: string[] = [
+  "https://ppmbkmbui.com",
+  "https://www.ppmbkmbui.com",
+];
+
 export async function middleware(req: NextRequest) {
-  if (req.method === "OPTIONS") {
-    return NextResponse.next();
+  const origin = req.headers.get("origin") ?? "";
+  const isAllowedOrigin = allowedOrigins.includes(origin);
+
+  const isPreflight = req.method === "OPTIONS";
+
+  if (isPreflight) {
+    const preflightHeaders = {
+      ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),
+    };
+    return NextResponse.json({}, { headers: preflightHeaders });
   }
 
   const token = req.headers.get("Authorization")?.split(" ")[1];
