@@ -119,7 +119,12 @@ export async function main() {
             }
         ], skipDuplicates: true
     })
-
+    await prisma.$executeRaw`
+        SELECT setval('questions_kating_id_seq', (SELECT MAX(id) FROM questions_kating));
+    `;
+    await prisma.$executeRaw`
+        SELECT setval('questions_id_seq', (SELECT MAX(id) FROM questions));
+    `;
 }
 
 main()

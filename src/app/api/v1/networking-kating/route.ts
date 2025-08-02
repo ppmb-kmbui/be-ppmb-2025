@@ -13,11 +13,7 @@ export async function GET(req: NextRequest) {
       fromId: +userId,
     },
     include: {
-      to: {
-        omit: {
-          password: false,
-        },
-      },
+      to: true,
       from: {
         omit: {
           password: false,
