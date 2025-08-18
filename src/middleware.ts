@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as jwt from "jose";
 import serverResponse from "./utils/serverResponse";
+import { after } from "node:test";
+import { headers } from "next/headers";
 
 const allowedOrigins: string[] = [
   "https://ppmbkmbui.com",
@@ -17,28 +19,33 @@ export async function middleware(req: NextRequest) {
       message: "Tidak diizinkan",
       error: "PERGI KAMU ORIGIN TAK DIUNDANG HAHAHA",
       status: 401,
-    });
+  });
   
-  let headers = new Headers(req.headers);
+  let corsHeader = new Headers();
+  let reqHeader = new Headers(req.headers);
 
-  headers.set("Access-Control-Allow-Origin", origin);
-  headers.set("Access-Control-Allow-Credentials", "true");
-  headers.set("Access-Control-Allow-Methods", "GET,DELETE,PATCH,POST,PUT");
-  headers.set("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization");
+  corsHeader.set("Access-Control-Allow-Origin", origin);
+  corsHeader.set("Access-Control-Allow-Credentials", "true");
+  corsHeader.set("Access-Control-Allow-Methods", "GET,DELETE,PATCH,POST,PUT");
+  corsHeader.set("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization");
 
   const isPreflight = req.method === "OPTIONS";
 
   if (isPreflight) {
     return NextResponse.json(
       { ok: true },
-      { status: 200, headers: headers }
+      { status: 200, headers: corsHeader }
     );
   }
 
   const url = new URL(req.url);
 
   if (url.pathname.startsWith("/api/v1/auth/")) {
-    return NextResponse.next({ request: { headers } });
+    const afterResponse = NextResponse.next({request: {headers: reqHeader}});
+    corsHeader.forEach((value, key) => {
+      afterResponse.headers.set(key, value);
+    });
+    return afterResponse;
   }
 
   const token = req.headers.get("Authorization")?.split(" ")[1];
@@ -50,14 +57,15 @@ export async function middleware(req: NextRequest) {
       {},
     );
     if (payload) {
-      headers.set("X-User-Id", payload.sub!.toString());
-      headers.set("X-User-Admin", payload.isAdmin! as string);
+      reqHeader.set("X-User-Id", payload.sub!.toString());
+      reqHeader.set("X-User-Admin", payload.isAdmin! as string);
     }
-    return NextResponse.next({
-      request: {
-        headers,
-      },
+    const afterResponse = NextResponse.next({request: {headers: reqHeader}});
+    corsHeader.forEach((value, key) => {
+      afterResponse.headers.set(key, value);
     });
+    return afterResponse;
+    
   } catch (e: any) {
     return serverResponse({
       success: false,
