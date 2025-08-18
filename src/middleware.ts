@@ -24,7 +24,7 @@ export async function middleware(req: NextRequest) {
   headers.set("Access-Control-Allow-Origin", origin);
   headers.set("Access-Control-Allow-Credentials", "true");
   headers.set("Access-Control-Allow-Methods", "GET,DELETE,PATCH,POST,PUT");
-  headers.set("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, sAuthorization");
+  headers.set("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization");
 
   const isPreflight = req.method === "OPTIONS";
 
