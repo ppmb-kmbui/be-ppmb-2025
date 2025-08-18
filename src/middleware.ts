@@ -29,11 +29,10 @@ export async function middleware(req: NextRequest) {
   const isPreflight = req.method === "OPTIONS";
 
   if (isPreflight) {
-    return NextResponse.next({
-      request: {
-        headers,
-      },
-    });
+    return NextResponse.json(
+      { ok: true },
+      { status: 200, headers: headers }
+    );
   }
 
   const url = new URL(req.url);
